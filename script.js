@@ -3,57 +3,24 @@ const elts = {
     text2: document.getElementById("text2")
 };
 
-const svgPaths = [
-    "svgs/Sin título-1-01.svg",
-    "svgs/Sin título-1-02.svg",
-    "svgs/Sin título-1-03.svg",
-    "svgs/Sin título-1-04.svg",
-    "svgs/Sin título-1-05.svg",
-    "svgs/Sin título-1-06.svg",
-    "svgs/Sin título-1-07.svg",
-    "svgs/Sin título-1-08.svg",
-    "svgs/Sin título-1-09.svg",
-    "svgs/Sin título-1-10.svg",
-    "svgs/Sin título-1-11.svg",
-    "svgs/Sin título-1-12.svg",
-    "svgs/Sin título-1-13.svg",
-    "svgs/Sin título-1-14.svg",
-    "svgs/Sin título-1-15.svg",
-    "svgs/Sin título-1-16.svg",
-    "svgs/Sin título-1-17.svg",
-    "svgs/Sin título-1-18.svg",
-    "svgs/Sin título-1-19.svg",
-    "svgs/Sin título-1-20.svg",
-    "svgs/Sin título-1-21.svg",
-    "svgs/Sin título-1-22.svg",
-    "svgs/Sin título-1-23.svg",
-    "svgs/Sin título-1-24.svg",
-    "svgs/Sin título-1-25.svg",
-    "svgs/Sin título-1-26.svg",
-    "svgs/Sin título-1-27.svg",
-    "svgs/Sin título-1-28.svg",
-    "svgs/Sin título-1-29.svg",
-    "svgs/Sin título-1-30.svg",
-    "svgs/Sin título-1-31.svg",
-];
+const svgPaths = [...Array(31).keys()].map(i => `svgs/Sin título-1-${String(i + 1).padStart(2, '0')}.svg`);
 
-const morphTime = 1;
-const cooldownTime = 0.25;
-
+const morphTime = 1.5; // Ajustado para mejor sincronización
+const cooldownTime = 0.4;
 let svgIndex = 0;
 let time = new Date();
 let morph = 0;
 let cooldown = cooldownTime;
 let isLoading = false;
 
-// Carga un SVG y lo asigna solo cuando esté listo
-function loadSVG(element, path) {
+function loadSVG(element, path, callback) {
     isLoading = true;
     fetch(path)
         .then(response => response.text())
         .then(data => {
             element.innerHTML = data;
             isLoading = false;
+            if (callback) callback();
         })
         .catch(error => {
             console.error("Error loading SVG:", error);
@@ -61,30 +28,25 @@ function loadSVG(element, path) {
         });
 }
 
-// Carga los dos primeros SVGs para iniciar sin parpadeo
-loadSVG(elts.text1, svgPaths[svgIndex]);
-loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
+// Cargar los dos primeros SVGs
+loadSVG(elts.text1, svgPaths[svgIndex], () => {
+    loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
+});
 
 function doMorph() {
     morph -= cooldown;
     cooldown = 0;
-
     let fraction = morph / morphTime;
-    if (fraction > 1) {
-        cooldown = cooldownTime;
-        fraction = 1;
-    }
-
+    fraction = Math.min(Math.max(fraction, 0), 1);
     setMorph(fraction);
 }
 
 function setMorph(fraction) {
-    elts.text2.style.filter = `blur(${Math.min(8 / fraction - 8, 100)}px)`;
-    elts.text2.style.opacity = `${Math.pow(fraction, 0.4) * 100}%`;
-
-    fraction = 1 - fraction;
-    elts.text1.style.filter = `blur(${Math.min(8 / fraction - 8, 100)}px)`;
-    elts.text1.style.opacity = `${Math.pow(fraction, 0.4) * 100}%`;
+    const ease = fraction ** 0.5;
+    elts.text2.style.filter = `blur(${(1 - ease) * 5}px)`;
+    elts.text2.style.opacity = `${ease * 100}%`;
+    elts.text1.style.filter = `blur(${ease * 5}px)`;
+    elts.text1.style.opacity = `${(1 - ease) * 100}%`;
 }
 
 function doCooldown() {
@@ -95,25 +57,28 @@ function doCooldown() {
     elts.text1.style.opacity = "0%";
 }
 
+function nextSVG() {
+    if (isLoading) return;
+    svgIndex = (svgIndex + 1) % svgPaths.length;
+    loadSVG(elts.text1, svgPaths[svgIndex], () => {
+        elts.text1.style.opacity = "0%";
+        loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
+    });
+}
+
 function animate() {
     requestAnimationFrame(animate);
-
     let newTime = new Date();
     let dt = (newTime - time) / 1000;
     time = newTime;
-
     cooldown -= dt;
 
     if (cooldown <= 0) {
         nextSVG();
-        cooldown = cooldownTime; // Resetear el cooldown
+        cooldown = cooldownTime;
     }
 
     doMorph();
-}
- else {
-        doCooldown();
-    }
 }
 
 animate();
