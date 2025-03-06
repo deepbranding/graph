@@ -40,43 +40,29 @@ const svgPaths = [
 const morphTime = 1;
 const cooldownTime = 0.25;
 
-let svgIndex = svgPaths.length - 1;
+let svgIndex = 0;
 let time = new Date();
 let morph = 0;
 let cooldown = cooldownTime;
+let isLoading = false;
 
-let svgCache = {};
-
-// Función para precargar todos los SVGs en memoria
-function preloadSVGs() {
-    svgPaths.forEach(path => {
-        fetch(path)
-            .then(response => response.text())
-            .then(data => {
-                svgCache[path] = data; // Guarda el SVG en memoria
-            })
-            .catch(error => console.error("Error preloading SVG:", error));
-    });
-}
-
-// Carga el SVG desde la caché en memoria en lugar de hacer una nueva petición
+// Carga un SVG y lo asigna solo cuando esté listo
 function loadSVG(element, path) {
-    if (svgCache[path]) {
-        element.innerHTML = svgCache[path];
-    } else {
-        fetch(path)
-            .then(response => response.text())
-            .then(data => {
-                svgCache[path] = data; // Guarda el SVG en caché
-                element.innerHTML = data;
-            })
-            .catch(error => console.error("Error loading SVG:", error));
-    }
+    isLoading = true;
+    fetch(path)
+        .then(response => response.text())
+        .then(data => {
+            element.innerHTML = data;
+            isLoading = false;
+        })
+        .catch(error => {
+            console.error("Error loading SVG:", error);
+            isLoading = false;
+        });
 }
 
-preloadSVGs(); // Llamamos a la precarga al inicio
-
-loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length]);
+// Carga los dos primeros SVGs para iniciar sin parpadeo
+loadSVG(elts.text1, svgPaths[svgIndex]);
 loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
 
 function doMorph() {
@@ -120,8 +106,8 @@ function animate() {
     cooldown -= dt;
 
     if (cooldown <= 0) {
-        if (shouldIncrementIndex) {
-            svgIndex++;
+        if (shouldIncrementIndex && !isLoading) {
+            svgIndex = (svgIndex + 1) % svgPaths.length;
 
             let temp = elts.text1;
             elts.text1 = elts.text2;
