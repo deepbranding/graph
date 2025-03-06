@@ -1,5 +1,6 @@
 const elts = {
-    container: document.getElementById("container")
+    text1: document.getElementById("text1"),
+    text2: document.getElementById("text2")
 };
 
 const svgPaths = [
@@ -44,25 +45,39 @@ let time = new Date();
 let morph = 0;
 let cooldown = cooldownTime;
 
-let currentSVG = document.createElement("div");
-let nextSVG = document.createElement("div");
-currentSVG.classList.add("svg-container");
-nextSVG.classList.add("svg-container");
+let svgCache = {};
 
-elts.container.appendChild(currentSVG);
-elts.container.appendChild(nextSVG);
-
-function loadSVG(element, path) {
-    fetch(path)
-        .then(response => response.text())
-        .then(data => {
-            element.innerHTML = data;
-        })
-        .catch(error => console.error("Error loading SVG:", error));
+// Función para precargar todos los SVGs en memoria
+function preloadSVGs() {
+    svgPaths.forEach(path => {
+        fetch(path)
+            .then(response => response.text())
+            .then(data => {
+                svgCache[path] = data; // Guarda el SVG en memoria
+            })
+            .catch(error => console.error("Error preloading SVG:", error));
+    });
 }
 
-loadSVG(currentSVG, svgPaths[svgIndex % svgPaths.length]);
-loadSVG(nextSVG, svgPaths[(svgIndex + 1) % svgPaths.length]);
+// Carga el SVG desde la caché en memoria en lugar de hacer una nueva petición
+function loadSVG(element, path) {
+    if (svgCache[path]) {
+        element.innerHTML = svgCache[path];
+    } else {
+        fetch(path)
+            .then(response => response.text())
+            .then(data => {
+                svgCache[path] = data; // Guarda el SVG en caché
+                element.innerHTML = data;
+            })
+            .catch(error => console.error("Error loading SVG:", error));
+    }
+}
+
+preloadSVGs(); // Llamamos a la precarga al inicio
+
+loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length]);
+loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
 
 function doMorph() {
     morph -= cooldown;
@@ -78,20 +93,20 @@ function doMorph() {
 }
 
 function setMorph(fraction) {
-    nextSVG.style.filter = `blur(${Math.min(8 / fraction - 8, 100)}px)`;
-    nextSVG.style.opacity = `${Math.pow(fraction, 0.4) * 100}%`;
+    elts.text2.style.filter = `blur(${Math.min(8 / fraction - 8, 100)}px)`;
+    elts.text2.style.opacity = `${Math.pow(fraction, 0.4) * 100}%`;
 
     fraction = 1 - fraction;
-    currentSVG.style.filter = `blur(${Math.min(8 / fraction - 8, 100)}px)`;
-    currentSVG.style.opacity = `${Math.pow(fraction, 0.4) * 100}%`;
+    elts.text1.style.filter = `blur(${Math.min(8 / fraction - 8, 100)}px)`;
+    elts.text1.style.opacity = `${Math.pow(fraction, 0.4) * 100}%`;
 }
 
 function doCooldown() {
     morph = 0;
-    nextSVG.style.filter = "";
-    nextSVG.style.opacity = "100%";
-    currentSVG.style.filter = "";
-    currentSVG.style.opacity = "0%";
+    elts.text2.style.filter = "";
+    elts.text2.style.opacity = "100%";
+    elts.text1.style.filter = "";
+    elts.text1.style.opacity = "0%";
 }
 
 function animate() {
@@ -108,11 +123,11 @@ function animate() {
         if (shouldIncrementIndex) {
             svgIndex++;
 
-            let temp = currentSVG;
-            currentSVG = nextSVG;
-            nextSVG = temp;
+            let temp = elts.text1;
+            elts.text1 = elts.text2;
+            elts.text2 = temp;
 
-            loadSVG(nextSVG, svgPaths[(svgIndex + 1) % svgPaths.length]);
+            loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
         }
         doMorph();
     } else {
