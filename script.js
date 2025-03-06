@@ -99,19 +99,24 @@ function animate() {
     requestAnimationFrame(animate);
 
     let newTime = new Date();
+    let shouldIncrementIndex = cooldown > 0;
     let dt = (newTime - time) / 1000;
     time = newTime;
 
     cooldown -= dt;
 
     if (cooldown <= 0) {
-        nextSVG();
-        cooldown = cooldownTime; // Resetear el cooldown
-    }
+        if (shouldIncrementIndex && !isLoading) {
+            svgIndex = (svgIndex + 1) % svgPaths.length;
 
-    doMorph();
-}
- else {
+            let temp = elts.text1;
+            elts.text1 = elts.text2;
+            elts.text2 = temp;
+
+            loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
+        }
+        doMorph();
+    } else {
         doCooldown();
     }
 }
