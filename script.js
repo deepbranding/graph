@@ -46,14 +46,16 @@ let time = new Date();
 let morph = 0;
 let cooldown = cooldownTime;
 
-function loadSVG(element, path) {
+function loadSVG(element, path, callback) {
     fetch(path)
         .then(response => response.text())
         .then(data => {
             element.innerHTML = data;
+            if (callback) callback(); // Llamar al callback cuando se haya cargado el SVG
         })
         .catch(error => console.error("Error loading SVG:", error));
 }
+
 
 loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length]);
 loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
@@ -101,13 +103,16 @@ function animate() {
     if (cooldown <= 0) {
         if (shouldIncrementIndex) {
             svgIndex++;
-            loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length]);
-            loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
+            loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length], () => {
+                loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length], doMorph);
+            });
+        } else {
+            doMorph();
         }
-        doMorph();
     } else {
         doCooldown();
     }
 }
+
 
 animate();
