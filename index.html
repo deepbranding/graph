@@ -2,19 +2,64 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <title>Morph Animation</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            margin: 0;
+            background: black;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #container {
+            position: absolute;
+            width: 100vw;
+            height: 80vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(1.2);
+            filter: url(#threshold) blur(0.6px);
+        }
+        #text1, #text2 {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            user-select: none;
+        }
+        #text1 svg, #text2 svg {
+            width: 80%;
+            height: auto;
+            max-height: 80vh;
+        }
+        @media (max-width: 767px) {
+            #container {
+                transform: translate(-50%, -50%) scale(0.9);
+                filter: url(#threshold) blur(0.4px);
+            }
+            #text1 svg, #text2 svg {
+                width: 95%;
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- El contenedor para los SVGs -->
     <div id="container">
         <div id="text1"></div>
         <div id="text2"></div>
     </div>
     
-    <!-- El filtro SVG para el efecto de fusión -->
-    <svg id="filters">
+    <svg id="filters" style="height:0;width:0;position:absolute;">
         <defs>
             <filter id="threshold">
                 <feColorMatrix in="SourceGraphic"
@@ -27,6 +72,9 @@
         </defs>
     </svg>
     
-    <script src="script.js"></script>
+    <script>
+        // Incluir el código JavaScript aquí para evitar una petición adicional
+        // [PEGAR EL CONTENIDO DE JAVASCRIPT AQUÍ]
+    </script>
 </body>
 </html>
