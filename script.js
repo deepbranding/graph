@@ -7,7 +7,7 @@ const elts = {
 // Ajusta esto según la estructura de tu repositorio
 const basePath = location.hostname === "localhost" || location.hostname === "127.0.0.1" 
     ? "" 
-    : "/tu-nombre-de-repositorio"; // Reemplaza con el nombre real de tu repositorio
+    : "/graph"; // Reemplaza con el nombre real de tu repositorio
 
 const svgPaths = [
     "svgs/Sin título-1-01.svg",
