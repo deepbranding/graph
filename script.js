@@ -72,12 +72,11 @@ function doMorph() {
 }
 
 function setMorph(fraction) {
-    elts.text2.style.opacity = `${fraction * 100}%`;
-    elts.text2.style.transform = `scale(${1 - fraction * 0.2})`; /* Ligera reducción del tamaño para el efecto de fusión */
+    elts.text2.style.opacity = `${fraction * 100}%`; // Controlamos la opacidad sin alterar la escala
+    elts.text1.style.opacity = `${(1 - fraction) * 100}%`; // Hacemos desaparecer el primer SVG
 
-    fraction = 1 - fraction;
-    elts.text1.style.opacity = `${fraction * 100}%`;
-    elts.text1.style.transform = `scale(${1 - fraction * 0.2})`; /* Ligera reducción del tamaño para el efecto de fusión */
+    // Evitar que se modifique la escala
+    // En vez de cambiar la escala, solo controlamos la opacidad de los SVGs
 }
 
 function doCooldown() {
@@ -109,8 +108,3 @@ function animate() {
 }
 
 animate();
-
-
-
-
-
