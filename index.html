@@ -2,31 +2,26 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Morph Animation</title>
     <style>
         body {
             margin: 0;
             background: black;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
             overflow: hidden;
+            height: 100vh;
         }
+        
         #container {
             position: absolute;
             width: 100vw;
-            height: 80vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            height: 100vh;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) scale(1.2);
+            transform: translate(-50%, -50%);
             filter: url(#threshold) blur(0.6px);
         }
+        
         #text1, #text2 {
             position: absolute;
             width: 100%;
@@ -34,22 +29,13 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            text-align: center;
             user-select: none;
         }
+        
         #text1 svg, #text2 svg {
             width: 80%;
             height: auto;
             max-height: 80vh;
-        }
-        @media (max-width: 767px) {
-            #container {
-                transform: translate(-50%, -50%) scale(0.9);
-                filter: url(#threshold) blur(0.4px);
-            }
-            #text1 svg, #text2 svg {
-                width: 95%;
-            }
         }
     </style>
 </head>
@@ -72,9 +58,6 @@
         </defs>
     </svg>
     
-    <script>
-        // Incluir el código JavaScript aquí para evitar una petición adicional
-        // [PEGAR EL CONTENIDO DE JAVASCRIPT AQUÍ]
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
