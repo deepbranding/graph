@@ -1,89 +1,70 @@
-const elts = {
-    text1: document.getElementById("text1"),
-    text2: document.getElementById("text2")
-};
+// Elementos DOM
+const text1 = document.getElementById("text1");
+const text2 = document.getElementById("text2");
 
-// Simplificar gestión de rutas
-const basePath = location.hostname === "localhost" || location.hostname === "127.0.0.1" 
+// Configuración simple
+const morphTime = 1;
+const cooldownTime = 0.4;
+
+// Rutas de SVGs
+const svgBasePath = location.hostname === "localhost" || location.hostname === "127.0.0.1" 
     ? "" 
-    : location.hostname.endsWith('github.io') 
-        ? '/' + location.pathname.split('/')[1] || "/graph"
-        : "/graph";
+    : (location.hostname.endsWith('github.io') 
+        ? '/' + location.pathname.split('/')[1] 
+        : "/graph");
 
-// Lista de SVGs - Reducir la cantidad en producción puede mejorar el rendimiento
-const svgPaths = [
-    "svgs/Sin título-1-01.svg", "svgs/Sin título-1-02.svg", "svgs/Sin título-1-03.svg", 
-    "svgs/Sin título-1-04.svg", "svgs/Sin título-1-05.svg", "svgs/Sin título-1-06.svg", 
-    "svgs/Sin título-1-07.svg", "svgs/Sin título-1-08.svg", "svgs/Sin título-1-09.svg", 
-    "svgs/Sin título-1-10.svg", "svgs/Sin título-1-11.svg", "svgs/Sin título-1-12.svg",
-    "svgs/Sin título-1-13.svg", "svgs/Sin título-1-14.svg", "svgs/Sin título-1-15.svg"
-    // Reduciendo a 15 SVGs para empezar - añadir más gradualmente si funciona bien
+// Array de SVGs (reducido a 10 para pruebas iniciales)
+const svgs = [
+    "svgs/Sin título-1-01.svg",
+    "svgs/Sin título-1-02.svg",
+    "svgs/Sin título-1-03.svg",
+    "svgs/Sin título-1-04.svg",
+    "svgs/Sin título-1-05.svg",
+    "svgs/Sin título-1-06.svg",
+    "svgs/Sin título-1-07.svg",
+    "svgs/Sin título-1-08.svg",
+    "svgs/Sin título-1-09.svg",
+    "svgs/Sin título-1-10.svg"
 ];
 
-// Variables de estado y configuración
-const svgCache = {};
-const morphTime = 1;
-const cooldownTime = 0.5; // Aumentado ligeramente para dar más tiempo entre transiciones
-let svgIndex = 0;
+// Variables de estado
+let index = 0;
+let nextIndex = 1;
 let time = new Date();
 let morph = 0;
 let cooldown = cooldownTime;
-let isAnimating = true;
-let activeRequest = null; // Controlar peticiones activas
+let animating = true;
 
-// Limitar a solo 4 SVGs en caché para reducir consumo de memoria
-function limitCache() {
-    const keys = Object.keys(svgCache);
-    if (keys.length > 4) {
-        const oldestKey = keys[0];
-        delete svgCache[oldestKey];
-    }
-}
+// Solo 2 SVGs en memoria para minimizar uso
+let currentSVG = "";
+let nextSVG = "";
 
-// Función para cargar SVG optimizada
-function loadSVG(element, index) {
-    // Si ya está en caché, usarlo directamente
-    if (svgCache[index]) {
-        element.innerHTML = svgCache[index];
-        return Promise.resolve();
-    }
-    
-    // Cancelar petición anterior si existe
-    if (activeRequest) {
-        activeRequest.abort();
-    }
-    
-    // Crear controller para poder abortar la petición
-    const controller = new AbortController();
-    activeRequest = controller;
-    
-    const path = `${basePath}/${svgPaths[index]}`.replace(/\/+/g, '/');
-    
-    return fetch(path, { signal: controller.signal })
+// Función simple para cargar un SVG
+function loadSVG(path) {
+    return fetch(`${svgBasePath}/${path}`.replace(/\/+/g, '/'))
         .then(response => response.text())
-        .then(data => {
-            // Procesar SVG para reducir su tamaño (quitar metadatos, comentarios)
-            const optimizedSVG = data
-                .replace(/<\?xml.*?\?>/g, '')
-                .replace(/<!--.*?-->/g, '')
-                .replace(/\s+/g, ' ')
-                .trim();
-            
-            svgCache[index] = optimizedSVG;
-            element.innerHTML = optimizedSVG;
-            activeRequest = null;
-            limitCache(); // Limitar el tamaño de la caché
-        })
-        .catch(err => {
-            // Solo manejo básico de errores, sin SVG de fallback que consume memoria
-            if (err.name !== 'AbortError') {
-                element.innerHTML = '';
-                activeRequest = null;
-            }
-        });
+        .catch(() => "<svg></svg>"); // SVG vacío como fallback
 }
 
-// Transición de morphing optimizada
+// Cargar los primeros SVGs
+function loadInitialSVGs() {
+    // Cargar el primero
+    loadSVG(svgs[0]).then(svg => {
+        currentSVG = svg;
+        text1.innerHTML = svg;
+        
+        // Luego cargar el segundo
+        return loadSVG(svgs[1]);
+    }).then(svg => {
+        nextSVG = svg;
+        text2.innerHTML = svg;
+        
+        // Iniciar la animación
+        animate();
+    });
+}
+
+// Hacer la transición
 function doMorph() {
     morph -= cooldown;
     cooldown = 0;
@@ -94,102 +75,71 @@ function doMorph() {
         fraction = 1;
     }
     
-    // Usar valores más conservadores para el blur
-    const maxBlur = 12;
-    const blur2 = Math.min(8 / fraction - 8, maxBlur);
-    const blur1 = Math.min(8 / (1 - fraction) - 8, maxBlur);
+    // Mantener el efecto blur simple para mejor rendimiento
+    const blur = 5; // Valor fijo para evitar cálculos
     
-    // Usar transform en vez de filter cuando sea posible (más eficiente)
-    elts.text2.style.filter = `blur(${blur2}px)`;
-    elts.text2.style.opacity = `${Math.pow(fraction, 0.4) * 100}%`;
+    // Aplicar opacidad y blur
+    text2.style.opacity = `${fraction * 100}%`;
+    text1.style.opacity = `${(1 - fraction) * 100}%`;
     
-    elts.text1.style.filter = `blur(${blur1}px)`;
-    elts.text1.style.opacity = `${Math.pow(1 - fraction, 0.4) * 100}%`;
+    text2.style.filter = fraction < 0.9 ? `blur(${blur}px)` : "";
+    text1.style.filter = fraction > 0.1 ? `blur(${blur}px)` : "";
 }
 
+// Reset entre transiciones
 function doCooldown() {
     morph = 0;
-    elts.text2.style.filter = "";
-    elts.text2.style.opacity = "100%";
-    elts.text1.style.filter = "";
-    elts.text1.style.opacity = "0%";
+    
+    text2.style.filter = "";
+    text2.style.opacity = "100%";
+    text1.style.filter = "";
+    text1.style.opacity = "0%";
 }
 
-// Función de animación con framerate adaptativo
+// Loop de animación optimizado
 function animate() {
-    if (!isAnimating) return;
+    if (!animating) return;
     
-    // Usar throttling para prevenir demasiados frames
-    requestAnimationFrame(() => {
-        const newTime = new Date();
-        const dt = (newTime - time) / 1000;
-        
-        // Saltear frames si estamos por debajo de 30 FPS para equilibrar rendimiento
-        if (dt < 0.033) { // 30fps
-            requestAnimationFrame(animate);
-            return;
+    requestAnimationFrame(animate);
+    
+    const newTime = new Date();
+    const dt = (newTime - time) / 1000;
+    time = newTime;
+    
+    // Lógica simple de animación
+    cooldown -= dt;
+    
+    if (cooldown <= 0) {
+        if (morph === 0) {
+            // Cambiar al siguiente par de SVGs
+            index = nextIndex;
+            nextIndex = (nextIndex + 1) % svgs.length;
+            
+            // Intercambiar SVGs actual y siguiente
+            text1.innerHTML = nextSVG;
+            currentSVG = nextSVG;
+            
+            // Cargar el siguiente SVG en segundo plano
+            loadSVG(svgs[nextIndex]).then(svg => {
+                nextSVG = svg;
+                text2.innerHTML = svg;
+            });
         }
-        
-        time = newTime;
-        const shouldIncrementIndex = cooldown > 0;
-        cooldown -= dt;
-        
-        if (cooldown <= 0) {
-            if (shouldIncrementIndex) {
-                svgIndex = (svgIndex + 1) % svgPaths.length;
-                
-                // Cargar SVGs actuales
-                loadSVG(elts.text1, svgIndex).then(() => {
-                    loadSVG(elts.text2, (svgIndex + 1) % svgPaths.length);
-                });
-            }
-            doMorph();
-        } else {
-            doCooldown();
-        }
-        
-        requestAnimationFrame(animate);
-    });
+        doMorph();
+    } else {
+        doCooldown();
+    }
 }
 
-// Iniciar la animación
-function init() {
-    // Cargar los primeros SVGs
-    loadSVG(elts.text1, 0).then(() => {
-        loadSVG(elts.text2, 1).then(() => {
-            // Iniciar la animación con un retraso para asegurar carga
-            setTimeout(() => {
-                animate();
-            }, 500);
-        });
-    });
+// Control de visibilidad
+document.addEventListener('visibilitychange', function() {
+    animating = !document.hidden;
     
-    // Limpiar memoria periódicamente
-    setInterval(() => {
-        // Forzar recolección de basura indirectamente
-        svgCache[svgIndex] = svgCache[svgIndex]; 
-    }, 30000);
-}
-
-// Optimización para visibilidad
-document.addEventListener('visibilitychange', () => {
-    isAnimating = !document.hidden;
-    if (isAnimating) {
+    if (animating) {
         time = new Date();
-        // Reiniciar con cooldown para evitar saltos bruscos
-        cooldown = cooldownTime;
         requestAnimationFrame(animate);
     }
 });
 
-// Iniciar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', init);
-
-// Manejar navegación away/back para liberar memoria
-window.addEventListener('pagehide', () => {
-    isAnimating = false;
-    // Liberar recursos
-    for (let key in svgCache) {
-        delete svgCache[key];
-    }
-});
+// Iniciar
+document.addEventListener('DOMContentLoaded', loadInitialSVGs);
