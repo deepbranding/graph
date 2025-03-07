@@ -6,7 +6,10 @@ const elts = {
 const svgPaths = [
     "svgs/Sin título-1-01.svg",
     "svgs/Sin título-1-02.svg",
-    // ... (tus rutas SVG)
+    "svgs/Sin título-1-03.svg",
+    "svgs/Sin título-1-04.svg",
+    "svgs/Sin título-1-05.svg",
+    // ... tus otros SVGs
 ];
 
 const morphTime = 1;
@@ -17,29 +20,19 @@ let time = new Date();
 let morph = 0;
 let cooldown = cooldownTime;
 
-let loadedSVGs = []; // Para almacenar los SVGs ya cargados
-
-function loadSVG(path) {
-    if (loadedSVGs[path]) {
-        return Promise.resolve(loadedSVGs[path]);
-    }
-
-    return fetch(path)
+function loadSVG(element, path) {
+    // Limpia el contenido antes de cargar el nuevo SVG
+    element.innerHTML = '';
+    fetch(path)
         .then(response => response.text())
         .then(data => {
-            loadedSVGs[path] = data;
-            return data;
+            element.innerHTML = data;
         })
-        .catch(error => {
-            console.error("Error loading SVG:", error);
-            return "";
-        });
+        .catch(error => console.error("Error loading SVG:", error));
 }
 
-function updateSVG(element, svgContent) {
-    element.innerHTML = svgContent;
-    element.style.opacity = "1";  // Asegura que el SVG sea visible después de cargar
-}
+loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length]);
+loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
 
 function doMorph() {
     morph -= cooldown;
@@ -84,12 +77,9 @@ function animate() {
     if (cooldown <= 0) {
         if (shouldIncrementIndex) {
             svgIndex++;
-            loadSVG(svgPaths[svgIndex % svgPaths.length]).then(svgContent => {
-                updateSVG(elts.text1, svgContent);
-            });
-            loadSVG(svgPaths[(svgIndex + 1) % svgPaths.length]).then(svgContent => {
-                updateSVG(elts.text2, svgContent);
-            });
+            // Asegúrate de que los SVG se cargan correctamente sin parpadeos
+            loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length]);
+            loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
         }
         doMorph();
     } else {
@@ -98,3 +88,4 @@ function animate() {
 }
 
 animate();
+
