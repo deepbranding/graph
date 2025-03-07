@@ -12,19 +12,16 @@ body {
 #container {
     position: absolute;
     width: 100vw;
-    height: 80vh; /* Ajuste para garantizar que el contenido se centra mejor */
+    height: 80vh;
     display: flex;
     justify-content: center;
     align-items: center;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) scale(1.2);
-    
-    /* Filtro SVG para el efecto morph */
     filter: url(#threshold) blur(0.6px);
 }
 
-/* Estilos del texto/SVG */
 #text1, #text2 {
     position: absolute;
     width: 100%;
@@ -34,11 +31,14 @@ body {
     font-size: 80pt;
     text-align: center;
     user-select: none;
-    visibility: hidden; /* Inicialmente invisible */
-    transition: visibility 0.25s ease-in-out;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out, visibility 0s 0.5s;
 }
 
 #text1.loaded, #text2.loaded {
-    visibility: visible; /* Visible después de la carga */
+    visibility: visible;
+    opacity: 1;
 }
+
 
