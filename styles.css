@@ -34,4 +34,11 @@ body {
     font-size: 80pt;
     text-align: center;
     user-select: none;
+    visibility: hidden; /* Inicialmente invisible */
+    transition: visibility 0.25s ease-in-out;
 }
+
+#text1.loaded, #text2.loaded {
+    visibility: visible; /* Visible después de la carga */
+}
+
