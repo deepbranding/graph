@@ -19,6 +19,8 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) scale(1.2);
+    
+    /* Filtro SVG para el efecto morph */
     filter: url(#threshold) blur(0.6px);
 }
 
@@ -32,11 +34,5 @@ body {
     text-align: center;
     user-select: none;
     opacity: 0;
-    transition: opacity 1s ease-in-out;
+    transition: opacity 0.5s ease-in-out; /* Añadido para transiciones suaves */
 }
-
-#text1.visible, #text2.visible {
-    opacity: 1;
-}
-
-
