@@ -37,8 +37,8 @@ const svgPaths = [
     "svgs/Sin título-1-31.svg",
 ];
 
-const morphTime = 1;
-const cooldownTime = 0.25;
+const morphTime = 1;  // Duración del morphing en segundos
+const cooldownTime = 0.25;  // Tiempo de enfriamiento entre cambios de SVG
 
 let svgIndex = svgPaths.length - 1;
 let time = new Date();
@@ -109,6 +109,7 @@ function animate() {
 }
 
 animate();
+
 
 
 
