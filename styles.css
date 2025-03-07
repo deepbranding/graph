@@ -43,7 +43,13 @@ body {
     max-height: 80vh;
 }
 
-
-.loaded #loading {
-    opacity: 0;
+/* Optimización para móviles */
+@media (max-width: 767px) {
+    #container {
+        transform: translate(-50%, -50%) scale(1.0); /* Escala ligeramente reducida en móviles */
+    }
+    
+    #text1 svg, #text2 svg {
+        width: 95%; /* Mayor ancho en móviles */
+    }
 }
