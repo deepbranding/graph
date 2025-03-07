@@ -103,12 +103,20 @@ function morphPaths(path1D, path2D, fraction) {
     const p1 = parsePath(path1D);
     const p2 = parsePath(path2D);
 
+    // Verificamos que ambos caminos tengan la misma longitud
+    if (p1.length !== p2.length) {
+        console.error("Paths do not have the same number of segments.");
+        return path1D; // Retornamos el primer path si no tienen el mismo número de segmentos
+    }
+
     const morphedPath = p1.map((segment, i) => {
         return segment.map((coordinate, j) => {
+            // Interpolamos entre las coordenadas correspondientes de ambos paths
             return coordinate + (p2[i][j] - coordinate) * fraction;
         });
     });
 
+    // Regresamos el path morphed con los valores interpolados
     return `M ${morphedPath.map(segment => segment.join(' ')).join(' ')} Z`;
 }
 
@@ -120,7 +128,7 @@ function parsePath(pathData) {
 
     while (match = regex.exec(pathData)) {
         const type = match[1];
-        const points = match[2].split(' ').map(Number);
+        const points = match[2].trim().split(/[\s,]+/).map(Number); // Aseguramos que las coordenadas estén bien separadas
         result.push(points);
     }
     return result;
@@ -160,3 +168,4 @@ function animate() {
 
 // Iniciar la animación
 animate();
+
