@@ -19,33 +19,42 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) scale(1.2);
-    
-    /* Filtro SVG para el efecto morph */
-    filter: url(#threshold);
+    filter: url(#threshold) blur(0.6px);
+    will-change: filter; /* Optimización de rendimiento */
 }
 
+/* Cambiar de span a div para mejor rendimiento con SVGs */
 #text1, #text2 {
     position: absolute;
     width: 100%;
+    height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 80pt;
     text-align: center;
     user-select: none;
-    opacity: 0;
-    transition: opacity 1s ease-in-out, transform 1s ease-in-out;
-    mix-blend-mode: multiply; /* Esto mejora la interacción visual entre SVGs */
+    will-change: opacity, filter; /* Optimización de rendimiento */
 }
 
-#text1 {
+/* Para SVGs dentro de los contenedores */
+#text1 svg, #text2 svg {
+    width: 80%; /* Ajustar según necesidades */
+    height: auto;
+    max-height: 80vh;
+}
+
+/* Indicador de carga */
+#loading {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 16px;
+    z-index: 100;
     opacity: 1;
-    z-index: 1;  /* Mantén el texto inicial encima */
+    transition: opacity 0.5s ease;
 }
 
-#text2 {
+.loaded #loading {
     opacity: 0;
-    z-index: 0;  /* Mantén el texto nuevo detrás */
 }
-
-
