@@ -22,7 +22,7 @@ const getBasePath = () => {
 };
 
 const basePath = getBasePath();
-console.log("Usando ruta base:", basePath); // Para depuración
+console.log("Usando ruta base:", basePath);
 
 // Verificar si las rutas de los SVGs ya incluyen el repositorio
 const normalizePath = (path) => {
@@ -78,10 +78,10 @@ let morph = 0;
 let cooldown = cooldownTime;
 let isAnimating = true;
 let preloadingComplete = false;
+let isMobile = window.innerWidth < 768; // Detectar si es dispositivo móvil
 
 // Función para codificar correctamente las URL con espacios y caracteres especiales
 function encodePathURI(path) {
-    // Dividir la ruta en segmentos y codificar cada uno individualmente
     const segments = path.split('/');
     const encodedSegments = segments.map(segment => encodeURIComponent(segment));
     return encodedSegments.join('/');
@@ -91,9 +91,10 @@ function encodePathURI(path) {
 function preloadSVGs() {
     console.log("Iniciando precarga de SVGs");
     
-    // Mostrar indicador de carga
+    // Ocultar el elemento de carga inmediatamente
     const loadingElement = document.getElementById('loading');
-    if (loadingElement) loadingElement.style.display = 'block';
+    if (loadingElement) loadingElement.style.display = 'none';
+    document.body.classList.add('loaded');
     
     // Precargar los primeros SVGs inmediatamente
     Promise.all([
@@ -105,10 +106,6 @@ function preloadSVGs() {
         loadSVG(elts.text1, svgIndex % svgPaths.length);
         loadSVG(elts.text2, (svgIndex + 1) % svgPaths.length);
         animate();
-        
-        // Eliminar indicador de carga
-        if (loadingElement) loadingElement.style.display = 'none';
-        document.body.classList.add('loaded');
         
         // Luego precargar el resto en segundo plano
         let preloaded = 2;
@@ -124,7 +121,6 @@ function preloadSVGs() {
             if (index !== svgIndex % totalSVGs && index !== (svgIndex + 1) % totalSVGs) {
                 preloadSVG(index).then(() => {
                     preloaded++;
-                    console.log(`Precargado SVG ${index+1}/${totalSVGs}`);
                     preloadNext((index + 1) % totalSVGs);
                 }).catch(() => {
                     preloadNext((index + 1) % totalSVGs);
@@ -137,23 +133,11 @@ function preloadSVGs() {
         preloadNext(2 % totalSVGs);
     }).catch(error => {
         console.error("Error en precarga inicial:", error);
-        // Intentar iniciar animación de todos modos con SVGs de respaldo
-        if (loadingElement) loadingElement.style.display = 'none';
-        document.body.classList.add('loaded');
-        
-        // Usar SVGs de respaldo
-        elts.text1.innerHTML = createFallbackSVG("SVG 1");
-        elts.text2.innerHTML = createFallbackSVG("SVG 2");
+        // Intentar iniciar animación de todos modos
+        loadSVG(elts.text1, svgIndex % svgPaths.length);
+        loadSVG(elts.text2, (svgIndex + 1) % svgPaths.length);
         animate();
     });
-}
-
-// Crea un SVG de respaldo simple
-function createFallbackSVG(text) {
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100">
-        <rect width="200" height="100" fill="none" stroke="white" stroke-width="2"/>
-        <text x="50%" y="50%" fill="white" text-anchor="middle" dominant-baseline="middle">${text}</text>
-    </svg>`;
 }
 
 // Función para precargar un SVG individual
@@ -179,10 +163,9 @@ function preloadSVG(index) {
         })
         .catch(error => {
             console.error(`Error preloading SVG ${index}:`, error);
-            // Proporcionar un SVG de respaldo en caso de error
-            const fallbackSVG = createFallbackSVG(`SVG ${index + 1}`);
-            svgCache[index] = fallbackSVG;
-            return fallbackSVG;
+            // Proporcionar un SVG vacío en caso de error
+            svgCache[index] = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100"></svg>';
+            return svgCache[index];
         });
 }
 
@@ -212,9 +195,7 @@ function loadSVG(element, index) {
         })
         .catch(error => {
             console.error(`Error loading SVG ${index}:`, error);
-            const fallbackSVG = createFallbackSVG(`SVG ${index + 1}`);
-            element.innerHTML = fallbackSVG;
-            svgCache[index] = fallbackSVG;
+            element.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100"></svg>';
         });
 }
 
@@ -230,15 +211,19 @@ function doMorph() {
 }
 
 function setMorph(fraction) {
-    // Limitamos el valor máximo de blur para evitar problemas de rendimiento
-    const maxBlur = 20;
+    // Ajustar el efecto de desenfoque según dispositivo
+    const blurFactor = isMobile ? 4 : 8; // Menor desenfoque en móviles
+    const maxBlur = isMobile ? 10 : 20; // Menor desenfoque máximo en móviles
     
-    elts.text2.style.filter = `blur(${Math.min(8 / fraction - 8, maxBlur)}px)`;
-    elts.text2.style.opacity = `${Math.pow(fraction, 0.4) * 100}%`;
+    // En móviles, ajustar la opacidad para mejorar la transición
+    const opacityPower = isMobile ? 0.6 : 0.4; // Mayor cambio de opacidad en móviles
+    
+    elts.text2.style.filter = `blur(${Math.min(blurFactor / fraction - blurFactor, maxBlur)}px)`;
+    elts.text2.style.opacity = `${Math.pow(fraction, opacityPower) * 100}%`;
     
     fraction = 1 - fraction;
-    elts.text1.style.filter = `blur(${Math.min(8 / fraction - 8, maxBlur)}px)`;
-    elts.text1.style.opacity = `${Math.pow(fraction, 0.4) * 100}%`;
+    elts.text1.style.filter = `blur(${Math.min(blurFactor / fraction - blurFactor, maxBlur)}px)`;
+    elts.text1.style.opacity = `${Math.pow(fraction, opacityPower) * 100}%`;
 }
 
 function doCooldown() {
@@ -304,10 +289,9 @@ document.addEventListener('visibilitychange', function() {
     }
 });
 
-// Manejo de errores global
-window.addEventListener('error', function(event) {
-    console.error('Error global capturado:', event.error);
-    // No detengas la animación por errores
+// Detectar cambios de orientación o tamaño para ajustar parámetros
+window.addEventListener('resize', function() {
+    isMobile = window.innerWidth < 768;
 });
 
 // Iniciar la precarga
