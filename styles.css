@@ -21,7 +21,7 @@ body {
     transform: translate(-50%, -50%) scale(1.2);
     
     /* Filtro SVG para el efecto morph */
-    filter: url(#threshold) blur(0.6px);
+    filter: url(#threshold);
 }
 
 #text1, #text2 {
@@ -34,5 +34,10 @@ body {
     text-align: center;
     user-select: none;
     opacity: 0;
-    transition: opacity 0.5s ease-in-out; /* Añadido para transiciones suaves */
+    transition: opacity 0.6s ease-in-out, filter 0.6s ease-in-out;
 }
+
+#text1 {
+    opacity: 1;
+}
+
