@@ -5,6 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Morph Animation</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Estilos inline para asegurar que estén disponibles */
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 4px;
+            z-index: 100;
+        }
+        .error-message {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            background-color: rgba(255, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <!-- El contenedor para los SVGs -->
@@ -28,7 +54,24 @@
     </svg>
     
     <!-- Indicador de carga -->
-    <div id="loading">Cargando...</div>
+    <div id="loading">Cargando SVGs...</div>
+    
+    <!-- Mensaje de error (oculto por defecto) -->
+    <div id="error-message" class="error-message"></div>
+    
+    <script>
+        // Script para mostrar errores de carga
+        window.addEventListener('error', function(event) {
+            const errorMsg = document.getElementById('error-message');
+            if (errorMsg) {
+                errorMsg.textContent = 'Error: ' + event.message;
+                errorMsg.style.display = 'block';
+                setTimeout(() => {
+                    errorMsg.style.display = 'none';
+                }, 5000);
+            }
+        });
+    </script>
     
     <script src="script.js"></script>
 </body>
