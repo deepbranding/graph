@@ -3,11 +3,35 @@ const elts = {
     text2: document.getElementById("text2")
 };
 
-// Prefijos para rutas relativas en GitHub Pages
-// Ajusta esto según la estructura de tu repositorio
-const basePath = location.hostname === "localhost" || location.hostname === "127.0.0.1" 
-    ? "" 
-    : "/graph"; // Reemplaza con el nombre real de tu repositorio
+// Corregir la detección de ruta base para GitHub Pages
+const getBasePath = () => {
+    // Si está en localhost, no usar prefijo
+    if (location.hostname === "localhost" || location.hostname === "127.0.0.1") 
+        return "";
+    
+    // Si está en GitHub Pages con el subdominio username.github.io
+    if (location.hostname.endsWith('github.io')) {
+        const pathSegments = location.pathname.split('/');
+        if (pathSegments.length > 1 && pathSegments[1]) {
+            return '/' + pathSegments[1]; // Primer segmento después del dominio
+        }
+    }
+    
+    // Si no se detecta correctamente, usa el nombre del repositorio como fallback
+    return "/graph";
+};
+
+const basePath = getBasePath();
+console.log("Usando ruta base:", basePath); // Para depuración
+
+// Verificar si las rutas de los SVGs ya incluyen el repositorio
+const normalizePath = (path) => {
+    // Si la ruta ya comienza con el nombre del repositorio, no añadir basePath
+    if (path.startsWith('/graph/') || path.startsWith('graph/')) {
+        return path;
+    }
+    return `${basePath}/${path}`;
+};
 
 const svgPaths = [
     "svgs/Sin título-1-01.svg",
@@ -43,7 +67,7 @@ const svgPaths = [
     "svgs/Sin título-1-31.svg",
 ];
 
-// Cache de SVGs precargados
+// Caché de SVGs precargados
 const svgCache = {};
 
 const morphTime = 1;
@@ -53,28 +77,95 @@ let time = new Date();
 let morph = 0;
 let cooldown = cooldownTime;
 let isAnimating = true;
+let preloadingComplete = false;
+
+// Función para codificar correctamente las URL con espacios y caracteres especiales
+function encodePathURI(path) {
+    // Dividir la ruta en segmentos y codificar cada uno individualmente
+    const segments = path.split('/');
+    const encodedSegments = segments.map(segment => encodeURIComponent(segment));
+    return encodedSegments.join('/');
+}
 
 // Función para precargar los SVGs
 function preloadSVGs() {
-    // Precargar los primeros SVGs inmediatamente
-    preloadSVG(svgIndex % svgPaths.length);
-    preloadSVG((svgIndex + 1) % svgPaths.length);
+    console.log("Iniciando precarga de SVGs");
     
-    // Luego precargar el resto en segundo plano
-    setTimeout(() => {
-        for (let i = 0; i < svgPaths.length; i++) {
-            preloadSVG(i);
+    // Mostrar indicador de carga
+    const loadingElement = document.getElementById('loading');
+    if (loadingElement) loadingElement.style.display = 'block';
+    
+    // Precargar los primeros SVGs inmediatamente
+    Promise.all([
+        preloadSVG(svgIndex % svgPaths.length),
+        preloadSVG((svgIndex + 1) % svgPaths.length)
+    ]).then(() => {
+        // Iniciar la animación cuando los SVGs iniciales estén cargados
+        console.log("SVGs iniciales cargados, iniciando animación");
+        loadSVG(elts.text1, svgIndex % svgPaths.length);
+        loadSVG(elts.text2, (svgIndex + 1) % svgPaths.length);
+        animate();
+        
+        // Eliminar indicador de carga
+        if (loadingElement) loadingElement.style.display = 'none';
+        document.body.classList.add('loaded');
+        
+        // Luego precargar el resto en segundo plano
+        let preloaded = 2;
+        const totalSVGs = svgPaths.length;
+        
+        function preloadNext(index) {
+            if (index >= totalSVGs) {
+                console.log("Precarga completa");
+                preloadingComplete = true;
+                return;
+            }
+            
+            if (index !== svgIndex % totalSVGs && index !== (svgIndex + 1) % totalSVGs) {
+                preloadSVG(index).then(() => {
+                    preloaded++;
+                    console.log(`Precargado SVG ${index+1}/${totalSVGs}`);
+                    preloadNext((index + 1) % totalSVGs);
+                }).catch(() => {
+                    preloadNext((index + 1) % totalSVGs);
+                });
+            } else {
+                preloadNext((index + 1) % totalSVGs);
+            }
         }
-    }, 100);
+        
+        preloadNext(2 % totalSVGs);
+    }).catch(error => {
+        console.error("Error en precarga inicial:", error);
+        // Intentar iniciar animación de todos modos con SVGs de respaldo
+        if (loadingElement) loadingElement.style.display = 'none';
+        document.body.classList.add('loaded');
+        
+        // Usar SVGs de respaldo
+        elts.text1.innerHTML = createFallbackSVG("SVG 1");
+        elts.text2.innerHTML = createFallbackSVG("SVG 2");
+        animate();
+    });
+}
+
+// Crea un SVG de respaldo simple
+function createFallbackSVG(text) {
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100">
+        <rect width="200" height="100" fill="none" stroke="white" stroke-width="2"/>
+        <text x="50%" y="50%" fill="white" text-anchor="middle" dominant-baseline="middle">${text}</text>
+    </svg>`;
 }
 
 // Función para precargar un SVG individual
 function preloadSVG(index) {
     if (svgCache[index]) return Promise.resolve(svgCache[index]);
     
-    const path = `${basePath}/${svgPaths[index]}`;
+    const path = normalizePath(svgPaths[index]);
+    const encodedPath = encodePathURI(path);
     
-    return fetch(path)
+    console.log(`Precargando SVG: ${encodedPath}`);
+    
+    return fetch(encodedPath)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`Error cargando SVG (${response.status}): ${path}`);
@@ -82,13 +173,16 @@ function preloadSVG(index) {
             return response.text();
         })
         .then(data => {
+            console.log(`SVG ${index} precargado correctamente`);
             svgCache[index] = data;
             return data;
         })
         .catch(error => {
-            console.error("Error preloading SVG:", error);
+            console.error(`Error preloading SVG ${index}:`, error);
             // Proporcionar un SVG de respaldo en caso de error
-            return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="10" y="50" fill="white">Error</text></svg>';
+            const fallbackSVG = createFallbackSVG(`SVG ${index + 1}`);
+            svgCache[index] = fallbackSVG;
+            return fallbackSVG;
         });
 }
 
@@ -99,9 +193,12 @@ function loadSVG(element, index) {
         return Promise.resolve();
     }
     
-    const path = `${basePath}/${svgPaths[index]}`;
+    const path = normalizePath(svgPaths[index]);
+    const encodedPath = encodePathURI(path);
     
-    return fetch(path)
+    console.log(`Cargando SVG: ${encodedPath}`);
+    
+    return fetch(encodedPath)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`Error cargando SVG (${response.status}): ${path}`);
@@ -109,17 +206,15 @@ function loadSVG(element, index) {
             return response.text();
         })
         .then(data => {
+            console.log(`SVG ${index} cargado correctamente`);
             svgCache[index] = data;
-            // Solo actualizar el elemento si todavía estamos en el mismo índice
-            // para evitar problemas de sincronización
-            if (index === svgIndex % svgPaths.length || 
-                index === (svgIndex + 1) % svgPaths.length) {
-                element.innerHTML = data;
-            }
+            element.innerHTML = data;
         })
         .catch(error => {
-            console.error("Error loading SVG:", error);
-            element.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="10" y="50" fill="white">Error</text></svg>';
+            console.error(`Error loading SVG ${index}:`, error);
+            const fallbackSVG = createFallbackSVG(`SVG ${index + 1}`);
+            element.innerHTML = fallbackSVG;
+            svgCache[index] = fallbackSVG;
         });
 }
 
@@ -180,6 +275,8 @@ function animate() {
             const currentIndex = svgIndex % svgPaths.length;
             const nextIndex = (svgIndex + 1) % svgPaths.length;
             
+            console.log(`Cambiando a SVGs ${currentIndex} y ${nextIndex}`);
+            
             // Usar una promesa para asegurar que los SVGs estén cargados
             Promise.all([
                 loadSVG(elts.text1, currentIndex),
@@ -187,6 +284,9 @@ function animate() {
             ]).then(() => {
                 // Preparar el siguiente SVG para la próxima transición
                 prepareNextSVG();
+            }).catch(error => {
+                console.error("Error al cambiar SVGs:", error);
+                // Continuar de todos modos
             });
         }
         doMorph();
@@ -204,10 +304,12 @@ document.addEventListener('visibilitychange', function() {
     }
 });
 
-// Iniciar la precarga y la animación
-preloadSVGs();
-loadSVG(elts.text1, svgIndex % svgPaths.length);
-loadSVG(elts.text2, (svgIndex + 1) % svgPaths.length).then(() => {
-    // Comenzar la animación solo cuando los SVGs iniciales estén cargados
-    animate();
+// Manejo de errores global
+window.addEventListener('error', function(event) {
+    console.error('Error global capturado:', event.error);
+    // No detengas la animación por errores
 });
+
+// Iniciar la precarga
+console.log("Iniciando script de animación SVG");
+preloadSVGs();
