@@ -38,23 +38,29 @@ const svgPaths = [
 ];
 
 let svgIndex = 0;
+let text1SVG = new Image();
+let text2SVG = new Image();
 
-function loadSVG(element, path) {
-    fetch(path)
-        .then(response => response.text())
-        .then(data => {
-            element.innerHTML = data;
-            element.classList.add("visible");
-        })
-        .catch(error => console.error("Error loading SVG:", error));
+// Función para cargar el SVG de manera eficiente
+function loadSVG(element, path, isText1 = true) {
+    const img = new Image();
+    img.onload = function () {
+        element.innerHTML = ''; // Limpiar el contenido anterior
+        element.appendChild(img);
+        element.classList.add("visible");
+    };
+    img.src = path;
 }
 
+// Función para iniciar la animación
 function startAnimation() {
     loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length]);
     loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
+
     animate();
 }
 
+// Función para manejar la animación de transición
 function animate() {
     setTimeout(() => {
         elts.text1.classList.remove("visible");
