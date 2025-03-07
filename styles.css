@@ -41,7 +41,7 @@ body {
     max-height: 80vh;
 }
 
-/* Optimizaciones para móviles */
+/* Optimización para móviles */
 @media (max-width: 767px) {
     #container {
         transform: translate(-50%, -50%) scale(0.9);
