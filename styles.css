@@ -20,10 +20,9 @@ body {
     left: 50%;
     transform: translate(-50%, -50%) scale(1.2);
     filter: url(#threshold) blur(0.6px);
-    will-change: filter; /* Optimización de rendimiento */
+    will-change: filter;
 }
 
-/* Cambiar de span a div para mejor rendimiento con SVGs */
 #text1, #text2 {
     position: absolute;
     width: 100%;
@@ -33,23 +32,22 @@ body {
     align-items: center;
     text-align: center;
     user-select: none;
-    will-change: opacity, filter; /* Optimización de rendimiento */
+    will-change: opacity, filter;
 }
 
-/* Para SVGs dentro de los contenedores */
 #text1 svg, #text2 svg {
-    width: 80%; /* Ajustar según necesidades */
+    width: 80%;
     height: auto;
     max-height: 80vh;
 }
 
-/* Optimización para móviles */
+/* Optimizaciones para móviles */
 @media (max-width: 767px) {
     #container {
-        transform: translate(-50%, -50%) scale(1.0); /* Escala ligeramente reducida en móviles */
+        transform: translate(-50%, -50%) scale(0.9);
     }
     
     #text1 svg, #text2 svg {
-        width: 95%; /* Mayor ancho en móviles */
+        width: 95%;
     }
 }
