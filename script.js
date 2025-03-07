@@ -44,7 +44,7 @@ let morph = 0;
 let cooldown = cooldownTime;
 let time = new Date();
 
-// Cargar SVG en un contenedor dado
+// Cargar el SVG en un contenedor dado
 function loadSVG(element, path) {
     fetch(path)
         .then(response => response.text())
@@ -52,7 +52,7 @@ function loadSVG(element, path) {
             element.innerHTML = data;
             requestAnimationFrame(() => {
                 if (path === svgPaths[svgIndex % svgPaths.length]) {
-                    // Inicia la animación de morphing solo después de la carga
+                    // Iniciar la animación de morphing solo después de la carga
                     doMorph();
                 }
             });
@@ -60,11 +60,11 @@ function loadSVG(element, path) {
         .catch(error => console.error("Error loading SVG:", error));
 }
 
-// Cargar SVG inicial
+// Cargar los dos SVGs inicialmente
 loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length]);
 loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
 
-// Función para realizar el morphing de los SVGs
+// Animación de morphing entre dos SVGs
 function doMorph() {
     morph -= cooldown;
     cooldown = 0;
@@ -76,18 +76,57 @@ function doMorph() {
     setMorph(fraction);
 }
 
-// Establecer el morphing entre los dos SVGs
+// Animación de la transición entre los SVGs
 function setMorph(fraction) {
-    // Aplica la transición solo a la opacidad
-    elts.text2.style.transition = "opacity 1s ease-in-out";
-    elts.text2.style.opacity = `${Math.pow(fraction, 0.4) * 100}%`;
+    // Obtenemos los paths de los SVGs actuales
+    const paths1 = elts.text1.querySelectorAll('path');
+    const paths2 = elts.text2.querySelectorAll('path');
 
-    fraction = 1 - fraction;
-    elts.text1.style.transition = "opacity 1s ease-in-out";
-    elts.text1.style.opacity = `${Math.pow(fraction, 0.4) * 100}%`;
+    // Realizar morphing de los caminos de un SVG al otro
+    paths1.forEach((path, index) => {
+        const path2 = paths2[index];
+        if (path && path2) {
+            const path1D = path.getAttribute('d');
+            const path2D = path2.getAttribute('d');
+            const morphedPath = morphPaths(path1D, path2D, fraction);
+            path.setAttribute('d', morphedPath);
+        }
+    });
+
+    // Desvanecer la visibilidad de text1 y text2 con opacidad
+    elts.text1.style.opacity = `${Math.pow(1 - fraction, 0.4) * 100}%`;
+    elts.text2.style.opacity = `${Math.pow(fraction, 0.4) * 100}%`;
 }
 
-// Hacer que el morphing pase sin problemas
+// Interpolación de las rutas para el morphing (simple)
+function morphPaths(path1D, path2D, fraction) {
+    const p1 = parsePath(path1D);
+    const p2 = parsePath(path2D);
+
+    const morphedPath = p1.map((segment, i) => {
+        return segment.map((coordinate, j) => {
+            return coordinate + (p2[i][j] - coordinate) * fraction;
+        });
+    });
+
+    return `M ${morphedPath.map(segment => segment.join(' ')).join(' ')} Z`;
+}
+
+// Función que interpreta un path SVG como un array de puntos
+function parsePath(pathData) {
+    const regex = /([MLC])([^MLC]*)/g;
+    let result = [];
+    let match;
+
+    while (match = regex.exec(pathData)) {
+        const type = match[1];
+        const points = match[2].split(' ').map(Number);
+        result.push(points);
+    }
+    return result;
+}
+
+// Función para manejar el cooldown y las transiciones entre SVGs
 function doCooldown() {
     morph = 0;
     elts.text2.style.transition = "none";
@@ -96,7 +135,7 @@ function doCooldown() {
     elts.text1.style.opacity = "0%";
 }
 
-// Animar el proceso de SVG
+// Iniciar la animación
 function animate() {
     requestAnimationFrame(animate);
 
@@ -121,6 +160,7 @@ function animate() {
 
 // Iniciar la animación
 animate();
+
 
 
 
