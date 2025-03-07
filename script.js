@@ -37,20 +37,14 @@ const svgPaths = [
     "svgs/Sin título-1-31.svg",
 ];
 
-const morphTime = 1;
-const cooldownTime = 0.25;
-
 let svgIndex = 0;
-let morph = 0;
-let cooldown = cooldownTime;
-let lastTime = Date.now();
 
 function loadSVG(element, path) {
     fetch(path)
         .then(response => response.text())
         .then(data => {
             element.innerHTML = data;
-            element.classList.add("loaded");
+            element.classList.add("visible");
         })
         .catch(error => console.error("Error loading SVG:", error));
 }
@@ -62,48 +56,21 @@ function startAnimation() {
 }
 
 function animate() {
-    requestAnimationFrame(animate);
+    setTimeout(() => {
+        elts.text1.classList.remove("visible");
+        elts.text2.classList.remove("visible");
 
-    let now = Date.now();
-    let deltaTime = (now - lastTime) / 1000;
-    lastTime = now;
+        svgIndex++;
+        loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length]);
+        loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
 
-    cooldown -= deltaTime;
-    if (cooldown <= 0) {
-        morph -= cooldown;
-        cooldown = 0;
+        setTimeout(() => {
+            elts.text1.classList.add("visible");
+            elts.text2.classList.add("visible");
+        }, 100);
 
-        let fraction = morph / morphTime;
-        if (fraction > 1) {
-            cooldown = cooldownTime;
-            fraction = 1;
-            svgIndex++;
-            loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length]);
-            loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
-        }
-
-        setMorph(fraction);
-    } else {
-        doCooldown();
-    }
+        animate();
+    }, 3000);  // Cambiar el SVG cada 3 segundos
 }
 
-function setMorph(fraction) {
-    elts.text2.style.filter = `blur(${Math.min(8 / fraction - 8, 100)}px)`;
-    elts.text2.style.opacity = `${Math.pow(fraction, 0.4) * 100}%`;
-
-    fraction = 1 - fraction;
-    elts.text1.style.filter = `blur(${Math.min(8 / fraction - 8, 100)}px)`;
-    elts.text1.style.opacity = `${Math.pow(fraction, 0.4) * 100}%`;
-}
-
-function doCooldown() {
-    morph = 0;
-    elts.text2.style.filter = "";
-    elts.text2.style.opacity = "100%";
-    elts.text1.style.filter = "";
-    elts.text1.style.opacity = "0%";
-}
-
-startAnimation(); // Comienza la animación
-
+startAnimation();  // Comienza la animación
