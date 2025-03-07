@@ -40,46 +40,52 @@ const svgPaths = [
 const morphTime = 1;
 const cooldownTime = 0.25;
 
-let svgIndex = svgPaths.length - 1;
-let time = new Date();
+let svgIndex = 0;
 let morph = 0;
 let cooldown = cooldownTime;
-
-let svgReady = false; // Marca la carga de SVG
+let lastTime = Date.now();
 
 function loadSVG(element, path) {
     fetch(path)
         .then(response => response.text())
         .then(data => {
             element.innerHTML = data;
-            element.classList.add("loaded"); // Añadir clase 'loaded' al elemento
-            svgReady = true;
+            element.classList.add("loaded");
         })
         .catch(error => console.error("Error loading SVG:", error));
 }
 
 function startAnimation() {
-    if (svgReady) {
-        animate();
-    } else {
-        setTimeout(startAnimation, 100); // Verifica de nuevo después de un corto tiempo
-    }
+    loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length]);
+    loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
+    animate();
 }
 
-loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length]);
-loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
+function animate() {
+    requestAnimationFrame(animate);
 
-function doMorph() {
-    morph -= cooldown;
-    cooldown = 0;
+    let now = Date.now();
+    let deltaTime = (now - lastTime) / 1000;
+    lastTime = now;
 
-    let fraction = morph / morphTime;
-    if (fraction > 1) {
-        cooldown = cooldownTime;
-        fraction = 1;
+    cooldown -= deltaTime;
+    if (cooldown <= 0) {
+        morph -= cooldown;
+        cooldown = 0;
+
+        let fraction = morph / morphTime;
+        if (fraction > 1) {
+            cooldown = cooldownTime;
+            fraction = 1;
+            svgIndex++;
+            loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length]);
+            loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
+        }
+
+        setMorph(fraction);
+    } else {
+        doCooldown();
     }
-
-    setMorph(fraction);
 }
 
 function setMorph(fraction) {
@@ -99,26 +105,5 @@ function doCooldown() {
     elts.text1.style.opacity = "0%";
 }
 
-function animate() {
-    requestAnimationFrame(animate);
-
-    let newTime = new Date();
-    let shouldIncrementIndex = cooldown > 0;
-    let dt = (newTime - time) / 1000;
-    time = newTime;
-
-    cooldown -= dt;
-
-    if (cooldown <= 0) {
-        if (shouldIncrementIndex) {
-            svgIndex++;
-            loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length]);
-            loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
-        }
-        doMorph();
-    } else {
-        doCooldown();
-    }
-}
-
 startAnimation(); // Comienza la animación
+
