@@ -54,8 +54,9 @@ function loadSVG(element, path) {
         .catch(error => console.error("Error loading SVG:", error));
 }
 
-loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length]);
-loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
+function preloadNextSVG() {
+    loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
+}
 
 function doMorph() {
     morph -= cooldown;
@@ -98,8 +99,8 @@ function animate() {
     if (cooldown <= 0) {
         if (shouldIncrementIndex) {
             svgIndex++;
-            loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length]);
-            loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
+            preloadNextSVG(); // Pre-cargar el siguiente SVG en el fondo antes de cambiarlo
+            loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length]); // Cargar el nuevo SVG en text1
         }
         doMorph();
     } else {
@@ -108,6 +109,7 @@ function animate() {
 }
 
 animate();
+
 
 
 
