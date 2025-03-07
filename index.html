@@ -4,48 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Morph Animation</title>
-    <style>
-        body {
-            margin: 0;
-            background: black;
-            overflow: hidden;
-            height: 100vh;
-        }
-        
-        #container {
-            position: absolute;
-            width: 100vw;
-            height: 100vh;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            filter: url(#threshold) blur(0.6px);
-        }
-        
-        #text1, #text2 {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            user-select: none;
-        }
-        
-        #text1 svg, #text2 svg {
-            width: 80%;
-            height: auto;
-            max-height: 80vh;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- El contenedor para los SVGs -->
     <div id="container">
         <div id="text1"></div>
         <div id="text2"></div>
     </div>
     
-    <svg id="filters" style="height:0;width:0;position:absolute;">
+    <!-- El filtro SVG para el efecto de fusión -->
+    <svg id="filters">
         <defs>
             <filter id="threshold">
                 <feColorMatrix in="SourceGraphic"
