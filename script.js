@@ -37,39 +37,35 @@ const svgPaths = [
     "svgs/Sin título-1-31.svg",
 ];
 
-const morphTime = 1;
-const cooldownTime = 0.25;
-
 let svgIndex = svgPaths.length - 1;
-let time = new Date();
+let morphTime = 1;
+let cooldownTime = 0.25;
 let morph = 0;
 let cooldown = cooldownTime;
+let time = new Date();
 
-// Función para cargar SVGs y asegurar que estén completamente disponibles
 function loadSVG(element, path) {
     fetch(path)
         .then(response => response.text())
         .then(data => {
             element.innerHTML = data;
-
-            // Forzamos una actualización del DOM
             requestAnimationFrame(() => {
-                // Aquí podemos empezar a animar después de que el SVG esté completamente cargado
                 if (path === svgPaths[svgIndex % svgPaths.length]) {
-                    doMorph();  // Llamamos a la animación de morphing una vez cargado el SVG
+                    // Inicia la animación de morphing solo después de la carga
+                    doMorph();
                 }
             });
         })
         .catch(error => console.error("Error loading SVG:", error));
 }
 
+// Cargar SVG inicial
 loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length]);
 loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
 
 function doMorph() {
     morph -= cooldown;
     cooldown = 0;
-
     let fraction = morph / morphTime;
     if (fraction > 1) {
         cooldown = cooldownTime;
@@ -80,6 +76,7 @@ function doMorph() {
 }
 
 function setMorph(fraction) {
+    // Asegurarnos de que el morphing sea suave entre los dos SVGs
     elts.text2.style.filter = `blur(${Math.min(8 / fraction - 8, 100)}px)`;
     elts.text2.style.opacity = `${Math.pow(fraction, 0.4) * 100}%`;
 
@@ -118,6 +115,5 @@ function animate() {
     }
 }
 
+// Arranca la animación
 animate();
-
-
