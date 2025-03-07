@@ -38,21 +38,19 @@ const svgPaths = [
 ];
 
 let svgIndex = 0;
-let text1SVG = new Image();
-let text2SVG = new Image();
 
-// Función para cargar el SVG de manera eficiente
-function loadSVG(element, path, isText1 = true) {
+// Función para cargar el SVG en el contenedor
+function loadSVG(element, path) {
     const img = new Image();
     img.onload = function () {
-        element.innerHTML = ''; // Limpiar el contenido anterior
+        element.innerHTML = '';  // Limpiar el contenido anterior
         element.appendChild(img);
-        element.classList.add("visible");
+        element.classList.add("visible");  // Hacer visible después de cargar
     };
     img.src = path;
 }
 
-// Función para iniciar la animación
+// Función para iniciar la animación sin parpadeo
 function startAnimation() {
     loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length]);
     loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
@@ -63,20 +61,25 @@ function startAnimation() {
 // Función para manejar la animación de transición
 function animate() {
     setTimeout(() => {
+        // Se hace invisible antes de cargar el siguiente SVG
         elts.text1.classList.remove("visible");
         elts.text2.classList.remove("visible");
 
-        svgIndex++;
+        svgIndex++;  // Aumentar el índice para el siguiente SVG
+
+        // Cargar el siguiente par de SVGs
         loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length]);
         loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
 
+        // Se hace visible nuevamente después de un pequeño retraso
         setTimeout(() => {
             elts.text1.classList.add("visible");
             elts.text2.classList.add("visible");
         }, 100);
 
-        animate();
+        animate();  // Recursividad para la animación continua
     }, 3000);  // Cambiar el SVG cada 3 segundos
 }
 
 startAnimation();  // Comienza la animación
+
