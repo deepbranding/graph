@@ -71,19 +71,17 @@ function doMorph() {
 }
 
 function setMorph(fraction) {
-    elts.text2.style.filter = `blur(${Math.min(8 / fraction - 8, 100)}px)`;
-    elts.text2.style.opacity = `${Math.pow(fraction, 0.4) * 100}%`;
+    elts.text2.style.opacity = `${fraction * 100}%`;
+    elts.text2.style.transform = `scale(${1 - fraction * 0.2})`; /* Ligera reducción del tamaño para el efecto de fusión */
 
     fraction = 1 - fraction;
-    elts.text1.style.filter = `blur(${Math.min(8 / fraction - 8, 100)}px)`;
-    elts.text1.style.opacity = `${Math.pow(fraction, 0.4) * 100}%`;
+    elts.text1.style.opacity = `${fraction * 100}%`;
+    elts.text1.style.transform = `scale(${1 - fraction * 0.2})`; /* Ligera reducción del tamaño para el efecto de fusión */
 }
 
 function doCooldown() {
     morph = 0;
-    elts.text2.style.filter = "";
     elts.text2.style.opacity = "100%";
-    elts.text1.style.filter = "";
     elts.text1.style.opacity = "0%";
 }
 
@@ -110,5 +108,6 @@ function animate() {
 }
 
 animate();
+
 
 
