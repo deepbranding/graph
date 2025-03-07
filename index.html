@@ -7,27 +7,29 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- The two texts -->
+    <!-- El contenedor para los SVGs -->
     <div id="container">
-        <span id="text1"></span>
-        <span id="text2"></span>
+        <div id="text1"></div>
+        <div id="text2"></div>
     </div>
-
-    <!-- The SVG filter used to create the merging effect -->
+    
+    <!-- El filtro SVG para el efecto de fusión -->
     <svg id="filters">
         <defs>
             <filter id="threshold">
                 <feColorMatrix in="SourceGraphic"
-                        type="matrix"
-                        values="1 0 0 0 0
-                                0 1 0 0 0
-                                0 0 1 0 0
-                                0 0 0 255 -140" />
+                    type="matrix"
+                    values="1 0 0 0 0
+                            0 1 0 0 0
+                            0 0 1 0 0
+                            0 0 0 255 -140" />
             </filter>
         </defs>
     </svg>
-
+    
+    <!-- Indicador de carga -->
+    <div id="loading">Cargando...</div>
+    
     <script src="script.js"></script>
 </body>
 </html>
-
