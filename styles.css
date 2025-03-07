@@ -31,14 +31,10 @@ body {
     font-size: 80pt;
     text-align: center;
     user-select: none;
-    visibility: hidden;
     opacity: 0;
-    transition: opacity 0.5s ease-in-out, visibility 0s 0.5s;
+    transition: opacity 1s ease-in-out;
 }
 
-#text1.loaded, #text2.loaded {
-    visibility: visible;
+#text1.visible, #text2.visible {
     opacity: 1;
 }
-
-
