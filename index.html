@@ -3,30 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Morph Animation</title>
+    <title>Morphing Text Effect</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- El contenedor para los SVGs -->
     <div id="container">
-        <div id="text1"></div>
-        <div id="text2"></div>
+        <svg id="filters">
+            <defs>
+                <filter id="threshold" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse">
+                    <feColorMatrix in="SourceGraphic" type="matrix"
+                        values="1 0 0 0 0
+                                0 1 0 0 0
+                                0 0 1 0 0
+                                0 0 0 255 -140" />
+                </filter>
+            </defs>
+        </svg>
+        <div id="text1" class="text">BIENVENIDO</div>
+        <div id="text2" class="text">AMIGO</div>
     </div>
-    
-    <!-- El filtro SVG para el efecto de fusión -->
-    <svg id="filters">
-        <defs>
-            <filter id="threshold">
-                <feColorMatrix in="SourceGraphic"
-                    type="matrix"
-                    values="1 0 0 0 0
-                            0 1 0 0 0
-                            0 0 1 0 0
-                            0 0 0 255 -140" />
-            </filter>
-        </defs>
-    </svg>
-    
     <script src="script.js"></script>
 </body>
 </html>
