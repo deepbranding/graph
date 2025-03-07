@@ -45,7 +45,7 @@ let time = new Date();
 let morph = 0;
 let cooldown = cooldownTime;
 
-let svgReady = false;
+let svgReady = false; // Marca la carga de SVG
 
 function loadSVG(element, path) {
     fetch(path)
@@ -53,21 +53,19 @@ function loadSVG(element, path) {
         .then(data => {
             element.innerHTML = data;
             element.classList.add("loaded"); // Añadir clase 'loaded' al elemento
-            svgReady = true; // Marcamos que el SVG está cargado
+            svgReady = true;
         })
         .catch(error => console.error("Error loading SVG:", error));
 }
 
-// Esperar hasta que ambos SVG estén listos antes de iniciar la animación
 function startAnimation() {
     if (svgReady) {
         animate();
     } else {
-        setTimeout(startAnimation, 100); // Verificar nuevamente después de un corto tiempo
+        setTimeout(startAnimation, 100); // Verifica de nuevo después de un corto tiempo
     }
 }
 
-// Cargar SVGs y mostrar solo después de que estén listos
 loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length]);
 loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
 
@@ -123,7 +121,4 @@ function animate() {
     }
 }
 
-// Iniciar animación después de que los SVGs estén completamente cargados
-startAnimation();
-
-
+startAnimation(); // Comienza la animación
