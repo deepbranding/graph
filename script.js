@@ -50,19 +50,12 @@ function loadSVG(element, path) {
         .then(response => response.text())
         .then(data => {
             element.innerHTML = data;
-            // Aseguramos que el SVG se cargue antes de mostrar la transición
-            element.style.opacity = "100%";
         })
         .catch(error => console.error("Error loading SVG:", error));
 }
 
-function startMorphing() {
-    // Inicializamos los SVG sin animación para que no haya parpadeos de inicio
-    elts.text1.style.opacity = "0";
-    elts.text2.style.opacity = "100%";
-    loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length]);
-    loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
-}
+loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length]);
+loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
 
 function doMorph() {
     morph -= cooldown;
@@ -116,6 +109,6 @@ function animate() {
     }
 }
 
-startMorphing();
 animate();
+
 
