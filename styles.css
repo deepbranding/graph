@@ -7,27 +7,25 @@ body {
     align-items: center;
     height: 100vh;
     overflow: hidden;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
 }
 
 #container {
     position: absolute;
     width: 100vw;
-    height: 80vh; 
+    height: 80vh;
     display: flex;
     justify-content: center;
     align-items: center;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) scale(1.2);
-    filter: url(#threshold) blur(0.6px);
-    will-change: filter;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    -webkit-filter: url(#threshold) blur(0.6px);
+    
+    /* Ajuste del filtro para mejor rendimiento en móviles */
+    filter: url(#threshold) blur(0.3px);
+    will-change: filter; /* Ayuda con el rendimiento de las animaciones */
 }
 
+/* Estilos del texto/SVG */
 #text1, #text2 {
     position: absolute;
     width: 100%;
@@ -37,30 +35,17 @@ body {
     font-size: 80pt;
     text-align: center;
     user-select: none;
-    will-change: filter, opacity;
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    perspective: 1000;
-    -webkit-perspective: 1000;
+    will-change: opacity, filter; /* Ayuda con el rendimiento de las animaciones */
+    transition: filter 50ms linear; /* Suaviza las transiciones */
 }
 
-/* Asegura que los SVGs tengan tamaño consistente */
-#text1 svg, #text2 svg {
-    width: auto;
-    height: auto;
-    max-width: 80%;
-    max-height: 80vh;
-}
-
+/* Optimizaciones para móviles */
 @media (max-width: 768px) {
     #container {
-        transform: translate(-50%, -50%) scale(1);
+        filter: url(#threshold) blur(0.2px); /* Filtro más ligero para dispositivos móviles */
     }
     
-    #text1 svg, #text2 svg {
-        max-width: 90%;
-        max-height: 70vh;
+    #text1, #text2 {
+        font-size: 60pt; /* Tamaño de fuente reducido para móviles */
     }
 }
