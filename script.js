@@ -1,8 +1,10 @@
+// Elementos del DOM
 const elts = {
     text1: document.getElementById("text1"),
     text2: document.getElementById("text2")
 };
 
+// Rutas de SVGs
 const svgPaths = [
     "svgs/Sin título-1-01.svg", "svgs/Sin título-1-02.svg",
     "svgs/Sin título-1-03.svg", "svgs/Sin título-1-04.svg",
@@ -22,61 +24,54 @@ const svgPaths = [
     "svgs/Sin título-1-31.svg"
 ];
 
-// Cache de SVGs para evitar solicitudes repetidas
-const svgCache = {};
-
-const morphTime = 1;
+// Configuración
+const morphTime = 1; 
 const cooldownTime = 0.25;
 let svgIndex = svgPaths.length - 1;
 let time = new Date();
 let morph = 0;
 let cooldown = cooldownTime;
 let animationFrameId = null;
+let isMobile = window.innerWidth < 768; // Detección de dispositivo móvil
 
-// Precarga los SVGs en caché
-function preloadSVGs() {
+// Caché de SVGs - Precargar todos los SVGs al inicio
+const svgCache = {};
+const preloadPromises = [];
+
+// Función para precargar todos los SVGs
+function preloadAllSVGs() {
     svgPaths.forEach(path => {
-        if (!svgCache[path]) {
-            fetch(path)
-                .then(response => response.text())
-                .then(data => {
-                    svgCache[path] = data;
-                })
-                .catch(error => console.error("Error preloading SVG:", error));
-        }
+        const promise = fetch(path)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.text();
+            })
+            .then(data => {
+                svgCache[path] = data;
+                return data;
+            })
+            .catch(error => {
+                console.error(`Error preloading SVG ${path}:`, error);
+            });
+        
+        preloadPromises.push(promise);
     });
+    
+    return Promise.all(preloadPromises);
 }
 
-// Carga SVG desde caché o fetch
-function loadSVG(element, path) {
+// Carga un SVG en un elemento
+function applySVG(element, path) {
     if (svgCache[path]) {
         element.innerHTML = svgCache[path];
-        return Promise.resolve();
+        return true;
     }
-    
-    return fetch(path)
-        .then(response => response.text())
-        .then(data => {
-            svgCache[path] = data;
-            element.innerHTML = data;
-        })
-        .catch(error => {
-            console.error("Error loading SVG:", error);
-        });
+    return false;
 }
 
-// Inicia la precarga
-preloadSVGs();
-
-// Carga inicial de SVGs
-Promise.all([
-    loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length]),
-    loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length])
-]).then(() => {
-    // Iniciar animación una vez que los SVGs iniciales estén cargados
-    animate();
-});
-
+// Función optimizada de morphing
 function doMorph() {
     morph -= cooldown;
     cooldown = 0;
@@ -90,37 +85,52 @@ function doMorph() {
     setMorph(fraction);
 }
 
+// Aplica el efecto de morphing
 function setMorph(fraction) {
-    // Ajuste de valores para evitar parpadeo
-    const blur1 = Math.min(8 / (1 - fraction) - 8, 100);
-    const blur2 = Math.min(8 / fraction - 8, 100);
+    // Valores ajustados para evitar parpadeos
+    if (fraction >= 0.99) fraction = 1;
+    if (fraction <= 0.01) fraction = 0;
     
-    // Aplicar transiciones más suaves
-    elts.text2.style.filter = `blur(${blur2}px)`;
+    // Cálculos para el filtro de desenfoque
+    const blur2 = Math.min(8 / Math.max(fraction, 0.1) - 8, 100);
+    const blur1 = Math.min(8 / Math.max(1 - fraction, 0.1) - 8, 100);
+    
+    // Ajustes específicos para dispositivos móviles
+    const mobileScaleFactor = isMobile ? 0.7 : 1;
+    
+    // Aplicar estilos con transición suave
+    elts.text2.style.filter = `blur(${blur2 * mobileScaleFactor}px)`;
     elts.text2.style.opacity = `${Math.pow(fraction, 0.4) * 100}%`;
     
-    elts.text1.style.filter = `blur(${blur1}px)`;
+    elts.text1.style.filter = `blur(${blur1 * mobileScaleFactor}px)`;
     elts.text1.style.opacity = `${Math.pow(1 - fraction, 0.4) * 100}%`;
     
-    // Prevenir parpadeo al final de la transición
+    // Prevenir parpadeo en los extremos de la animación
     if (fraction === 1) {
-        elts.text2.style.filter = "blur(0px)";
-    }
-    if (fraction === 0) {
-        elts.text1.style.filter = "blur(0px)";
+        elts.text2.style.filter = "";
+        elts.text1.style.opacity = "0";
+        elts.text1.style.filter = "";
+    } else if (fraction === 0) {
+        elts.text1.style.filter = "";
+        elts.text2.style.opacity = "0";
+        elts.text2.style.filter = "";
     }
 }
 
+// Estado de enfriamiento entre animaciones
 function doCooldown() {
     morph = 0;
     
-    // Establecer los estilos directamente sin transición para evitar parpadeo
-    elts.text2.style.filter = "blur(0px)";
-    elts.text2.style.opacity = "100%";
-    elts.text1.style.filter = "blur(0px)";
-    elts.text1.style.opacity = "0%";
+    // Aplicar estados directamente para evitar transiciones intermedias
+    requestAnimationFrame(() => {
+        elts.text2.style.filter = "";
+        elts.text2.style.opacity = "100%";
+        elts.text1.style.filter = "";
+        elts.text1.style.opacity = "0%";
+    });
 }
 
+// Función principal de animación
 function animate() {
     animationFrameId = requestAnimationFrame(animate);
     
@@ -135,14 +145,18 @@ function animate() {
         if (shouldIncrementIndex) {
             svgIndex++;
             
-            // Pre-carga el siguiente SVG antes de la transición
-            const currentPath = svgPaths[svgIndex % svgPaths.length];
-            const nextPath = svgPaths[(svgIndex + 1) % svgPaths.length];
+            // Aplicar SVGs desde el caché
+            const currentIdx = svgIndex % svgPaths.length;
+            const nextIdx = (svgIndex + 1) % svgPaths.length;
             
-            // Cargar SVGs en secuencia para evitar parpadeos
-            Promise.resolve()
-                .then(() => loadSVG(elts.text1, currentPath))
-                .then(() => loadSVG(elts.text2, nextPath));
+            const currentPath = svgPaths[currentIdx];
+            const nextPath = svgPaths[nextIdx];
+            
+            // Asegurar que los SVGs estén en caché antes de aplicarlos
+            if (svgCache[currentPath] && svgCache[nextPath]) {
+                applySVG(elts.text1, currentPath);
+                applySVG(elts.text2, nextPath);
+            }
         }
         doMorph();
     } else {
@@ -150,7 +164,27 @@ function animate() {
     }
 }
 
-// Limpieza para evitar memory leaks
+// Iniciar el proceso
+function init() {
+    // Detectar cambios en el tamaño de pantalla
+    window.addEventListener('resize', () => {
+        isMobile = window.innerWidth < 768;
+    });
+    
+    // Precargar todos los SVGs primero
+    preloadAllSVGs().then(() => {
+        // Aplicar los dos primeros SVGs
+        applySVG(elts.text1, svgPaths[svgIndex % svgPaths.length]);
+        applySVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length]);
+        
+        // Iniciar la animación cuando todo esté cargado
+        setTimeout(() => {
+            animate();
+        }, 100);
+    });
+}
+
+// Limpiar recursos al cerrar
 function cleanup() {
     if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
@@ -158,5 +192,6 @@ function cleanup() {
     }
 }
 
-// Añadir limpieza al cerrar/cambiar página
+// Gestionar ciclo de vida
+window.addEventListener('load', init);
 window.addEventListener('unload', cleanup);
