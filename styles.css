@@ -6,17 +6,13 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
-    width: 100vw;
     overflow: hidden;
-    /* Mejoras de rendimiento */
-    touch-action: none;
-    -webkit-tap-highlight-color: transparent;
 }
 
 #container {
     position: absolute;
     width: 100vw;
-    height: 80vh;
+    height: 80vh; /* Ajuste para garantizar que el contenido se centra mejor */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -24,72 +20,18 @@ body {
     left: 50%;
     transform: translate(-50%, -50%) scale(1.2);
     
-    /* Optimizaciones de renderizado */
-    filter: url(#threshold) blur(0.4px);
-    will-change: transform, filter;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    -webkit-font-smoothing: subpixel-antialiased;
-    transform-style: preserve-3d;
+    /* Filtro SVG para el efecto morph */
+    filter: url(#threshold) blur(0.6px);
 }
 
-/* Estilos para los contenedores de SVG */
+/* Estilos del texto/SVG */
 #text1, #text2 {
     position: absolute;
     width: 100%;
-    height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
+    font-size: 80pt;
     text-align: center;
     user-select: none;
-    pointer-events: none;
-    
-    /* Optimizaciones de renderizado */
-    will-change: opacity, filter;
-    transform: translateZ(0);
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    -webkit-font-smoothing: antialiased;
-    
-    /* Transiciones optimizadas */
-    transition: opacity 20ms linear;
-}
-
-/* Ajustes específicos para SVG */
-#text1 svg, #text2 svg {
-    width: auto;
-    height: auto;
-    max-width: 90%;
-    max-height: 90%;
-    /* Mejoras para SVG */
-    shape-rendering: geometricPrecision;
-    text-rendering: geometricPrecision;
-}
-
-/* Optimizaciones para móviles */
-@media (max-width: 768px) {
-    #container {
-        transform: translate(-50%, -50%) scale(0.9);
-        height: 60vh; /* Ajustar altura para mejorar visualización */
-    }
-    
-    #text1 svg, #text2 svg {
-        max-width: 90%;
-        max-height: 90%;
-        transform: scale(0.9); /* Ajuste adicional para dispositivos móviles */
-    }
-}
-
-/* Optimizaciones específicas para dispositivos más pequeños */
-@media (max-width: 480px) {
-    #container {
-        transform: translate(-50%, -50%) scale(0.8);
-        height: 50vh;
-    }
-    
-    #text1 svg, #text2 svg {
-        max-width: 95%;
-        max-height: 95%;
-    }
 }
