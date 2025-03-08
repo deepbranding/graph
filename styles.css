@@ -7,6 +7,8 @@ body {
     align-items: center;
     height: 100vh;
     overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 #container {
@@ -21,6 +23,9 @@ body {
     transform: translate(-50%, -50%) scale(1.2);
     filter: url(#threshold) blur(0.6px);
     will-change: filter;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    -webkit-filter: url(#threshold) blur(0.6px);
 }
 
 #text1, #text2 {
@@ -33,4 +38,29 @@ body {
     text-align: center;
     user-select: none;
     will-change: filter, opacity;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    perspective: 1000;
+    -webkit-perspective: 1000;
+}
+
+/* Asegura que los SVGs tengan tamaño consistente */
+#text1 svg, #text2 svg {
+    width: auto;
+    height: auto;
+    max-width: 80%;
+    max-height: 80vh;
+}
+
+@media (max-width: 768px) {
+    #container {
+        transform: translate(-50%, -50%) scale(1);
+    }
+    
+    #text1 svg, #text2 svg {
+        max-width: 90%;
+        max-height: 70vh;
+    }
 }
