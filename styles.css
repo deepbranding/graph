@@ -20,12 +20,15 @@ body {
     left: 50%;
     transform: translate(-50%, -50%) scale(1.2);
     
-    /* Ajuste del filtro para mejor rendimiento en móviles */
-    filter: url(#threshold) blur(0.3px);
-    will-change: filter; /* Ayuda con el rendimiento de las animaciones */
+    /* Ajustes para mejorar la calidad de renderizado */
+    filter: url(#threshold) blur(0.4px);
+    will-change: filter;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    -webkit-font-smoothing: subpixel-antialiased;
 }
 
-/* Estilos del texto/SVG */
+/* Estilos para los contenedores de SVG */
 #text1, #text2 {
     position: absolute;
     width: 100%;
@@ -35,17 +38,39 @@ body {
     font-size: 80pt;
     text-align: center;
     user-select: none;
-    will-change: opacity, filter; /* Ayuda con el rendimiento de las animaciones */
-    transition: filter 50ms linear; /* Suaviza las transiciones */
+    will-change: opacity, filter;
+    
+    /* Optimizaciones de renderizado */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    -webkit-font-smoothing: antialiased;
+    
+    /* Transiciones suaves */
+    transition: opacity 20ms linear;
+}
+
+/* Ajustes específicos para SVG */
+#text1 svg, #text2 svg {
+    width: auto;
+    height: auto;
+    max-width: 90%;
+    max-height: 90%;
 }
 
 /* Optimizaciones para móviles */
 @media (max-width: 768px) {
     #container {
-        filter: url(#threshold) blur(0.2px); /* Filtro más ligero para dispositivos móviles */
+        transform: translate(-50%, -50%) scale(1);
+        filter: url(#threshold) blur(0.25px);
     }
     
     #text1, #text2 {
-        font-size: 60pt; /* Tamaño de fuente reducido para móviles */
+        font-size: 50pt; /* Tamaño reducido para móviles */
+    }
+    
+    #text1 svg, #text2 svg {
+        max-width: 80%;
+        max-height: 80%;
     }
 }
