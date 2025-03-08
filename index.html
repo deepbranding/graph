@@ -2,22 +2,34 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Morph Animation</title>
+    
+    <!-- Mejoras de renderizado -->
+    <meta name="theme-color" content="#000000">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
     <link rel="stylesheet" href="styles.css">
+    
+    <!-- Precargar algunos SVGs iniciales para mejor rendimiento -->
+    <link rel="preload" href="svgs/Sin título-1-01.svg" as="image" type="image/svg+xml" crossorigin>
+    <link rel="preload" href="svgs/Sin título-1-02.svg" as="image" type="image/svg+xml" crossorigin>
+    <link rel="preload" href="svgs/Sin título-1-03.svg" as="image" type="image/svg+xml" crossorigin>
 </head>
 <body>
-    <!-- The two texts -->
+    <!-- Contenedor principal para los SVGs -->
     <div id="container">
         <span id="text1"></span>
         <span id="text2"></span>
     </div>
     
-    <!-- The SVG filter used to create the merging effect -->
-    <svg id="filters">
+    <!-- Filtro SVG optimizado -->
+    <svg id="filters" style="position: absolute; width: 0; height: 0; overflow: hidden;">
         <defs>
             <filter id="threshold">
-                <!-- Ajuste de matriz para mejorar rendimiento y evitar parpadeos -->
+                <!-- Matriz optimizada para mejor calidad visual en dispositivos -->
                 <feColorMatrix in="SourceGraphic"
                         type="matrix"
                         values="1 0 0 0 0
@@ -28,10 +40,7 @@
         </defs>
     </svg>
     
-    <!-- Preload de los primeros SVGs para mejorar rendimiento inicial -->
-    <link rel="preload" href="svgs/Sin título-1-01.svg" as="image" type="image/svg+xml">
-    <link rel="preload" href="svgs/Sin título-1-02.svg" as="image" type="image/svg+xml">
-    
-    <script src="script.js"></script>
+    <!-- Script con deferido para mejorar carga inicial -->
+    <script src="script.js" defer></script>
 </body>
 </html>
