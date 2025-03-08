@@ -43,23 +43,85 @@ const svgPaths = [
 const morphTime = 1;
 const cooldownTime = 0.25;
 
+// Detectar si es dispositivo móvil
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
 // Variables de estado
 let svgIndex = svgPaths.length - 1;
 let time = new Date();
 let morph = 0;
 let cooldown = cooldownTime;
 let animationFrameId = null;
-let nextSvg = null;
-let currentSvg = null;
+let svgCache = {};
+let isTransitioning = false;
 
-// Función para cargar SVG de manera eficiente
-function loadSVG(element, path) {
+// Función para limpiar SVG y prepararlo para una transición más suave
+function cleanSVG(svgContent) {
+    // Asegurarnos de que el SVG tenga un viewBox si no lo tiene
+    if (!svgContent.includes('viewBox') && 
+        (svgContent.includes('width=') && svgContent.includes('height='))) {
+        
+        const widthMatch = svgContent.match(/width=['"]([^'"]+)['"]/);
+        const heightMatch = svgContent.match(/height=['"]([^'"]+)['"]/);
+        
+        if (widthMatch && heightMatch) {
+            const width = parseInt(widthMatch[1], 10);
+            const height = parseInt(heightMatch[1], 10);
+            
+            svgContent = svgContent.replace('<svg', `<svg viewBox="0 0 ${width} ${height}"`);
+        }
+    }
+    
+    // Asegurarnos de preservar el aspect ratio
+    if (!svgContent.includes('preserveAspectRatio')) {
+        svgContent = svgContent.replace('<svg', '<svg preserveAspectRatio="xMidYMid meet"');
+    }
+    
+    // Eliminar atributos que puedan causar problemas de tamaño
+    svgContent = svgContent
+        .replace(/\s(width|height)=["'][^"']*["']/g, '')
+        .replace(/\sstyle=["'][^"']*["']/g, '');
+    
+    return svgContent;
+}
+
+// Función para cargar y cachear SVGs
+function loadSVG(element, path, immediate = false) {
+    // Si ya está en caché, usarlo directamente
+    if (svgCache[path]) {
+        if (immediate) {
+            element.innerHTML = svgCache[path];
+            return Promise.resolve();
+        }
+        
+        // Pequeño retraso para asegurar que la transición sea suave
+        return new Promise(resolve => {
+            requestAnimationFrame(() => {
+                element.innerHTML = svgCache[path];
+                resolve();
+            });
+        });
+    }
+    
+    // Si no está en caché, cargarlo
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open('GET', path, true);
+        xhr.setRequestHeader('Cache-Control', 'no-cache');
         xhr.onload = function() {
             if (xhr.status === 200) {
-                element.innerHTML = xhr.responseText;
+                // Limpiar y optimizar el SVG
+                const cleanedSVG = cleanSVG(xhr.responseText);
+                svgCache[path] = cleanedSVG;
+                
+                if (immediate) {
+                    element.innerHTML = cleanedSVG;
+                } else {
+                    // Aplicar con un pequeño retraso para evitar parpadeos
+                    requestAnimationFrame(() => {
+                        element.innerHTML = cleanedSVG;
+                    });
+                }
                 resolve();
             } else {
                 console.error(`Error cargando SVG ${path}: ${xhr.status}`);
@@ -74,28 +136,37 @@ function loadSVG(element, path) {
     });
 }
 
-// Precarga el siguiente SVG para evitar parpadeos
-function preloadNextSVG() {
-    const nextIndex = (svgIndex + 2) % svgPaths.length;
-    const path = svgPaths[nextIndex];
+// Precargar varios SVGs en segundo plano
+function preloadNextSVGs(startIndex, count = 3) {
+    const promises = [];
     
-    return new Promise((resolve) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', path, true);
-        xhr.onload = function() {
-            if (xhr.status === 200) {
-                nextSvg = xhr.responseText;
-            }
-            resolve();
-        };
-        xhr.onerror = function() {
-            resolve(); // Continuamos incluso si hay error
-        };
-        xhr.send();
-    });
+    for (let i = 0; i < count; i++) {
+        const idx = (startIndex + i) % svgPaths.length;
+        const path = svgPaths[idx];
+        
+        if (!svgCache[path]) {
+            const promise = new Promise((resolve) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', path, true);
+                xhr.setRequestHeader('Cache-Control', 'no-cache');
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        svgCache[path] = cleanSVG(xhr.responseText);
+                    }
+                    resolve();
+                };
+                xhr.onerror = resolve; // Continuar incluso con errores
+                xhr.send();
+            });
+            
+            promises.push(promise);
+        }
+    }
+    
+    return Promise.all(promises);
 }
 
-// Función de morphing
+// Función de morphing optimizada
 function doMorph() {
     morph -= cooldown;
     cooldown = 0;
@@ -109,38 +180,69 @@ function doMorph() {
     setMorph(fraction);
 }
 
-// Aplica los efectos visuales de morphing
+// Aplica los efectos visuales de morphing con mejoras para dispositivos móviles
 function setMorph(fraction) {
-    // Aplicamos blur y opacidad solo cuando es necesario
-    if (fraction < 0.99) {
-        const blur2 = Math.min(8 / fraction - 8, 100);
-        elts.text2.style.filter = `blur(${blur2}px)`;
-        elts.text2.style.opacity = `${Math.pow(fraction, 0.4) * 100}%`;
+    // Ajuste específico para dispositivos móviles para intensificar el efecto
+    if (isMobile) {
+        // Intensificar el efecto en móviles para que sea más visible
+        const adjustedFraction = Math.pow(fraction, 0.8); // Hace que la transición sea más pronunciada
+        
+        if (fraction < 0.99) {
+            const blur2 = Math.min(8 / fraction - 8, 60); // Limitamos el blur máximo
+            elts.text2.style.filter = `blur(${blur2}px)`;
+            elts.text2.style.opacity = `${Math.pow(adjustedFraction, 0.4) * 100}%`;
+        } else {
+            elts.text2.style.filter = "";
+            elts.text2.style.opacity = "100%";
+        }
+        
+        if (fraction > 0.01) {
+            const blur1 = Math.min(8 / (1 - fraction) - 8, 60);
+            elts.text1.style.filter = `blur(${blur1}px)`;
+            elts.text1.style.opacity = `${Math.pow(1 - adjustedFraction, 0.4) * 100}%`;
+        } else {
+            elts.text1.style.filter = "";
+            elts.text1.style.opacity = "0%";
+        }
     } else {
-        elts.text2.style.filter = "";
-        elts.text2.style.opacity = "100%";
-    }
-    
-    if (fraction > 0.01) {
-        const blur1 = Math.min(8 / (1 - fraction) - 8, 100);
-        elts.text1.style.filter = `blur(${blur1}px)`;
-        elts.text1.style.opacity = `${Math.pow(1 - fraction, 0.4) * 100}%`;
-    } else {
-        elts.text1.style.filter = "";
-        elts.text1.style.opacity = "0%";
+        // Comportamiento original para escritorio con ajustes
+        if (fraction < 0.99) {
+            const blur2 = Math.min(8 / fraction - 8, 100);
+            elts.text2.style.filter = `blur(${blur2}px)`;
+            elts.text2.style.opacity = `${Math.pow(fraction, 0.4) * 100}%`;
+        } else {
+            elts.text2.style.filter = "";
+            elts.text2.style.opacity = "100%";
+        }
+        
+        if (fraction > 0.01) {
+            const blur1 = Math.min(8 / (1 - fraction) - 8, 100);
+            elts.text1.style.filter = `blur(${blur1}px)`;
+            elts.text1.style.opacity = `${Math.pow(1 - fraction, 0.4) * 100}%`;
+        } else {
+            elts.text1.style.filter = "";
+            elts.text1.style.opacity = "0%";
+        }
     }
 }
 
-// Restablece el estado entre transiciones
+// Restablece el estado entre transiciones con antirrebote para evitar parpadeos
 function doCooldown() {
     morph = 0;
-    elts.text2.style.filter = "";
-    elts.text2.style.opacity = "100%";
-    elts.text1.style.filter = "";
-    elts.text1.style.opacity = "0%";
+    
+    // Transición más suave para evitar parpadeos
+    requestAnimationFrame(() => {
+        elts.text2.style.filter = "";
+        elts.text2.style.opacity = "100%";
+        
+        requestAnimationFrame(() => {
+            elts.text1.style.filter = "";
+            elts.text1.style.opacity = "0%";
+        });
+    });
 }
 
-// Bucle principal de animación
+// Bucle principal de animación mejorado
 function animate() {
     animationFrameId = requestAnimationFrame(animate);
     
@@ -152,31 +254,28 @@ function animate() {
     cooldown -= dt;
     
     if (cooldown <= 0) {
-        if (shouldIncrementIndex) {
+        if (shouldIncrementIndex && !isTransitioning) {
+            isTransitioning = true;
             svgIndex++;
             
-            // Si tenemos un SVG precargado, lo usamos inmediatamente
-            if (nextSvg && svgIndex % svgPaths.length === (svgIndex - 1) % svgPaths.length + 1) {
-                elts.text1.innerHTML = currentSvg || '';
-                elts.text2.innerHTML = nextSvg;
-                currentSvg = nextSvg;
-                nextSvg = null;
+            const currentPath = svgPaths[svgIndex % svgPaths.length];
+            const nextPath = svgPaths[(svgIndex + 1) % svgPaths.length];
+            
+            // Cargar SVGs actuales en secuencia correcta
+            Promise.all([
+                loadSVG(elts.text1, currentPath),
+                loadSVG(elts.text2, nextPath)
+            ])
+            .then(() => {
+                isTransitioning = false;
                 
-                // Precargamos el siguiente mientras se muestra la transición
-                preloadNextSVG();
-            } else {
-                // Carga normal si no tenemos precarga
-                loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length])
-                    .then(() => {
-                        currentSvg = elts.text1.innerHTML;
-                    });
-                    
-                loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length])
-                    .then(() => {
-                        // Precargamos el siguiente después de cargar el actual
-                        preloadNextSVG();
-                    });
-            }
+                // Precargar los siguientes SVGs para tenerlos listos
+                preloadNextSVGs(svgIndex + 2, 3);
+            })
+            .catch(error => {
+                console.error("Error en transición:", error);
+                isTransitioning = false;
+            });
         }
         
         doMorph();
@@ -185,19 +284,29 @@ function animate() {
     }
 }
 
-// Inicializar animación
+// Inicializar animación con precarga
 function init() {
-    // Cargar los primeros SVGs
+    // Cargar los filtros SVG primero para asegurar que estén disponibles
+    document.getElementById("filters").style.display = "block";
+    
+    // Preparar configuración específica para móviles
+    if (isMobile) {
+        document.documentElement.style.setProperty('--webkit-filter-url', 'url(#threshold)');
+    }
+    
+    // Cargar y mostrar los primeros SVGs
     Promise.all([
-        loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length])
-            .then(() => { currentSvg = elts.text1.innerHTML; }),
-        loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length])
+        loadSVG(elts.text1, svgPaths[svgIndex % svgPaths.length], true),
+        loadSVG(elts.text2, svgPaths[(svgIndex + 1) % svgPaths.length], true)
     ])
     .then(() => {
         // Iniciar la animación después de cargar los primeros SVGs
-        animate();
-        // Precargar el siguiente para tenerlo listo
-        preloadNextSVG();
+        setTimeout(() => {
+            animate();
+            
+            // Precargar los siguientes SVGs en segundo plano
+            preloadNextSVGs(svgIndex + 2, 4);
+        }, 100); // Pequeño retraso para asegurar renderizado inicial
     })
     .catch(error => {
         console.error("Error en la inicialización:", error);
@@ -213,8 +322,22 @@ document.addEventListener('visibilitychange', () => {
         }
     } else if (!animationFrameId) {
         time = new Date(); // Resetear el tiempo
-        animate();
+        requestAnimationFrame(animate);
     }
+});
+
+// Reiniciar la animación cuando cambie el tamaño de ventana (orientación móvil)
+let resizeTimeout;
+window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = null;
+        }
+        time = new Date();
+        requestAnimationFrame(animate);
+    }, 200);
 });
 
 // Iniciar después de que la página cargue completamente
