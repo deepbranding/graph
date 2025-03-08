@@ -2,23 +2,22 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Morph Animation</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Los dos elementos de texto -->
+    <!-- The two texts -->
     <div id="container">
         <span id="text1"></span>
         <span id="text2"></span>
     </div>
     
-    <!-- Filtro SVG para crear el efecto de fusión -->
+    <!-- The SVG filter used to create the merging effect -->
     <svg id="filters">
         <defs>
             <filter id="threshold">
-                <!-- Mejor procesamiento de matriz para dispositivos móviles -->
+                <!-- Ajuste de matriz para mejorar rendimiento y evitar parpadeos -->
                 <feColorMatrix in="SourceGraphic"
                         type="matrix"
                         values="1 0 0 0 0
@@ -28,6 +27,10 @@
             </filter>
         </defs>
     </svg>
+    
+    <!-- Preload de los primeros SVGs para mejorar rendimiento inicial -->
+    <link rel="preload" href="svgs/Sin título-1-01.svg" as="image" type="image/svg+xml">
+    <link rel="preload" href="svgs/Sin título-1-02.svg" as="image" type="image/svg+xml">
     
     <script src="script.js"></script>
 </body>
