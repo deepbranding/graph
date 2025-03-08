@@ -12,26 +12,49 @@ body {
 #container {
     position: absolute;
     width: 100vw;
-    height: 80vh; /* Ajuste para garantizar que el contenido se centra mejor */
+    height: 80vh;
     display: flex;
     justify-content: center;
     align-items: center;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) scale(1.2);
-    
-    /* Filtro SVG para el efecto morph */
     filter: url(#threshold) blur(0.6px);
+    will-change: filter; /* Optimización de rendimiento */
 }
 
-/* Estilos del texto/SVG */
+/* Cambiar de span a div para mejor rendimiento con SVGs */
 #text1, #text2 {
     position: absolute;
     width: 100%;
+    height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 80pt;
     text-align: center;
     user-select: none;
+    will-change: opacity, filter; /* Optimización de rendimiento */
+}
+
+/* Para SVGs dentro de los contenedores */
+#text1 svg, #text2 svg {
+    width: 80%; /* Ajustar según necesidades */
+    height: auto;
+    max-height: 80vh;
+}
+
+/* Indicador de carga */
+#loading {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 16px;
+    z-index: 100;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+.loaded #loading {
+    opacity: 0;
 }
