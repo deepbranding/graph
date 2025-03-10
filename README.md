@@ -1,9 +1,9 @@
 --------------------------------------------------------------------
 --------------------------------------------------------------------
 
-This is a proof of concept of my vector graphic bureau
+This is a proof of concept of my vector graphic bureau.
 
-Eduardo Caballero del Alamo 2025 © all rights reserved ©
+Eduardo Caballero del Álamo 2025 © All rights reserved. 
 
 
 --------------------------------------------------------------------
