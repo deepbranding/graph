@@ -1,7 +1,6 @@
 body {
     margin: 0;
-    background: black;
-    color: white;
+    background: #E6E7E8;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -18,7 +17,7 @@ body {
     align-items: center;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%) scale(1.2);
+    transform: translate(-50%, -50%) scale(0.9);
     
     /* Filtro SVG para el efecto morph */
     filter: url(#threshold) blur(0.6px);
