@@ -1,7 +1,7 @@
 --------------------------------------------------------------------
 --------------------------------------------------------------------
 
-This is a proof of concept of my vector graphic bureau.
+Eduar to vectory is a proof of concept of my vector graphic bureau.
 
 Eduardo Caballero del Álamo 2025 © All rights reserved. 
 
