@@ -6,12 +6,9 @@ const elts = {
 const svgPaths = [
     "svgs/Sin título-1-01.svg",
     "svgs/Sin título-1-05.svg",
-    "svgs/Sin título-1-06.svg",
     "svgs/Sin título-1-07.svg",
     "svgs/Sin título-1-10.svg",
     "svgs/Sin título-1-15.svg",
-    "svgs/Sin título-1-17.svg",
-    "svgs/Sin título-1-20.svg",
     "svgs/Sin título-1-34.svg",
 ];
 
