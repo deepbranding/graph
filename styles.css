@@ -2,28 +2,38 @@ body {
     margin: 0;
     background: #E6E7E8;
     display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    flex-direction: column;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+}
+
+.site-header {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    color: #c0c0c0;
+    font-size: 1rem;
+    font-weight: 500;
+    max-width: 28%;
+    word-wrap: break-word;
     overflow: hidden;
 }
 
+.description {
+    display: inline-block;
+    font-family: 'Inter', sans-serif;
+    min-height: 6.5em;
+}
+
 #container {
-    position: absolute;
-    width: 100vw;
-    height: 80vh; /* Ajuste para garantizar que el contenido se centra mejor */
+    flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0.9);
-    
-    /* Filtro SVG para el efecto morph */
+    position: relative;
     filter: url(#threshold) blur(0.6px);
 }
 
-/* Estilos del texto/SVG */
 #text1, #text2 {
     position: absolute;
     width: 100%;
@@ -34,3 +44,55 @@ body {
     text-align: center;
     user-select: none;
 }
+
+.footer-chat {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    flex-direction: column;
+    padding-bottom: 1.5rem;
+}
+
+.chat-button {
+    display: flex;
+    align-items: center;
+    background-color: #DCDCDC;
+    color: black;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    text-decoration: none;
+    padding: 0.65rem 1.2em 0.65rem 1rem;
+    border-radius: 32px;
+    transition: background-color 0.3s ease;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.chat-button:hover {
+    background-color: #c0c0c0;
+}
+
+.telegram-icon {
+    flex-shrink: 0;
+    width: 21px;
+    height: 21px;
+    object-fit: contain;
+    border-radius: 50%;
+    margin-left: -3px;
+}
+
+.footer-rights {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    color: #666;
+    text-align: center;
+    opacity: 0.6;
+    position: relative; /* Necesario para controlar el efecto dentro */
+    display: inline-block; /* No afecte al layout */
+    width: 100%;  /* Asegura que no se salga del contenedor */
+    overflow: hidden;    /* Para evitar el desbordamiento que cause saltos */
+
+}
+
