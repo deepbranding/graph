@@ -33,6 +33,8 @@ body {
     position: relative;
     filter: url(#threshold) blur(0.6px);
     transition: transform 0.3s ease;
+    top: 50px; /* Ajusta el valor según lo necesites */
+    
     
 }
 
@@ -122,7 +124,7 @@ body {
     }
 
     #container {
-      transform: translateY(100px); /* Desplaza el contenedor hacia abajo */
+      transform: translateY(75px); /* Desplaza el contenedor hacia abajo */
     }
 
     .chat-button {
@@ -160,6 +162,6 @@ body {
     
     #container {
         /* Ajusta el estilo aquí si es necesario */
-        margin-top: 10px; /* Ejemplo de ajuste */
+        transform: translateY(50px);
     }
 }
