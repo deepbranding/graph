@@ -14,7 +14,7 @@ body {
     color: #c0c0c0;
     font-size: 1rem;
     font-weight: 500;
-    max-width: 28%;
+    max-width: 27.5%;
     word-wrap: break-word;
     overflow: hidden;
 }
@@ -32,6 +32,8 @@ body {
     align-items: center;
     position: relative;
     filter: url(#threshold) blur(0.6px);
+    transition: transform 0.3s ease;
+    
 }
 
 #text1, #text2 {
@@ -96,3 +98,68 @@ body {
 
 }
 
+/* -----MEDIA QUERIES DEFAULT----- */
+
+@media (max-width: 768px) {
+    .site-header {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      max-width: 90%;
+      font-size: 0.6rem;
+      line-height: 1.4;
+    }
+
+    .description {
+      min-height: auto;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .footer-rights {
+      font-size: 0.6rem;
+      line-height: 1.4;
+    }
+
+    #container {
+      transform: translateY(100px); /* Desplaza el contenedor hacia abajo */
+    }
+
+    .chat-button {
+        font-size: 14px;
+        padding: 0.5rem 1rem 0.5rem 0.8rem;
+        margin-bottom: 1rem;
+    }
+
+    .telegram-icon {
+        width: 16px;
+        height: 16px;
+    }
+
+}
+
+
+/* -----MEDIA QUERIES JioPhone2----- */
+
+@media (max-width: 240px) {
+    /* Tus estilos específicos para dispositivos con un ancho máximo de 240px */
+    
+    .site-header {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        max-width: 90%;
+        font-size: 0.4rem;
+        line-height: 1.4;
+      }
+
+      .footer-rights {
+        font-size: 0.4rem;
+        line-height: 1.4;
+      }
+    
+    #container {
+        /* Ajusta el estilo aquí si es necesario */
+        margin-top: 10px; /* Ejemplo de ajuste */
+    }
+}
